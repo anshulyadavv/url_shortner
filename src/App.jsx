@@ -1,3 +1,4 @@
+import { useAuth } from "./context/AuthContext";
 import { useState } from "react";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { useToast } from "./hooks/useToast";
@@ -6,27 +7,46 @@ import { Sidebar, PageHeader } from "./components/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
 import GeneratedPage from "./pages/GeneratedPage";
 import { LoginPage, SignupPage } from "./pages/AuthPages";
-import { OverviewTab, LinksTab, AnalyticsTab, SettingsTab } from "./pages/DashboardTabs";
+import { supabase } from "./lib/supabase";
+import {
+  OverviewTab,
+  LinksTab,
+  AnalyticsTab,
+  SettingsTab,
+} from "./pages/DashboardTabs";
 
-const PAGE_TITLES = {
-  dashboard: { title: "Dashboard",  subtitle: "Good morning, Alex 👋"                   },
-  links:     { title: "My Links",   subtitle: "Manage and track your shortened links"    },
-  analytics: { title: "Analytics",  subtitle: "Detailed performance insights"            },
-  settings:  { title: "Settings",   subtitle: "Account preferences"                     },
+// ── Greeting helper (no user needed) ─────────────────────────────────────────
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 21) return "Good evening";
 };
 
+// ── Main app ──────────────────────────────────────────────────────────────────
 function AppInner() {
   const { bg, text, sf } = useTheme();
+  const { user } = useAuth();
 
-  // ── Router ──────────────────────────────────────────────────────────────────
-  const [page, setPage]           = useState("landing");
+  const fullName = user?.user_metadata?.name ?? "";
+  const name = fullName.split(" ")[0] || "there";
+
+  const PAGE_TITLES = {
+    dashboard: { title: "Dashboard", subtitle: `${getGreeting()}, ${name} 👋` },
+    links: { title: "My Links", subtitle: "Manage and track your shortened links" },
+    analytics: { title: "Analytics", subtitle: "Detailed performance insights" },
+    settings: { title: "Settings", subtitle: "Account preferences" },
+  };
+
+  // ── Router ────────────────────────────────────────────────────────────────
+  const [page, setPage] = useState(user ? "dashboard" : "landing");
   const [sidebarTab, setSidebarTab] = useState("dashboard");
 
-  // ── Shared overlays ─────────────────────────────────────────────────────────
+  // ── Shared overlays ───────────────────────────────────────────────────────
   const { toast, showToast } = useToast();
-  const [qrUrl, setQrUrl]   = useState(null);
+  const [qrUrl, setQrUrl] = useState(null);
 
-  // ── Guest generated link ────────────────────────────────────────────────────
+  // ── Guest generated link ──────────────────────────────────────────────────
   const [generatedUrl, setGeneratedUrl] = useState("");
 
   const handleGenerate = (shortUrl) => {
@@ -39,24 +59,29 @@ function AppInner() {
     showToast("Link copied!");
   };
 
-  const goHome = () => {
-    setSidebarTab("dashboard"); // reset sidebar on logout/home
+  const goHome = async () => {
+    await supabase.auth.signOut();
+    setSidebarTab("dashboard");
     setPage("landing");
   };
 
   return (
-    // Root div carries the theme bg + text so every page inherits it
-    <div style={{ background: bg, color: text, fontFamily: sf, minHeight: "100vh", transition: "background 0.3s, color 0.3s" }}>
-      {/* Global overlays */}
+    <div
+      style={{
+        background: bg,
+        color: text,
+        fontFamily: sf,
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <Toast message={toast.message} visible={toast.visible} />
       {qrUrl && <QRModal url={qrUrl} onClose={() => setQrUrl(null)} />}
 
-      {/* Landing */}
       {page === "landing" && (
         <LandingPage onNavigate={setPage} onGenerate={handleGenerate} />
       )}
 
-      {/* Generated (guest result) */}
       {page === "generated" && (
         <GeneratedPage
           shortUrl={generatedUrl}
@@ -67,7 +92,6 @@ function AppInner() {
         />
       )}
 
-      {/* Login — onClose sends user back to landing */}
       {page === "login" && (
         <LoginPage
           onLogin={() => setPage("dashboard")}
@@ -76,7 +100,6 @@ function AppInner() {
         />
       )}
 
-      {/* Signup — onClose sends user back to landing */}
       {page === "signup" && (
         <SignupPage
           onSignup={() => setPage("dashboard")}
@@ -85,7 +108,6 @@ function AppInner() {
         />
       )}
 
-      {/* Dashboard */}
       {page === "dashboard" && (
         <DashboardShell
           sidebarTab={sidebarTab}
@@ -94,6 +116,7 @@ function AppInner() {
           onCopy={handleCopy}
           onShowQR={setQrUrl}
           onShowToast={showToast}
+          pageTitles={PAGE_TITLES}
         />
       )}
     </div>
@@ -101,34 +124,47 @@ function AppInner() {
 }
 
 // ── Dashboard shell ───────────────────────────────────────────────────────────
-function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR, onShowToast }) {
+function DashboardShell({
+  sidebarTab,
+  setSidebarTab,
+  onLogout,
+  onCopy,
+  onShowQR,
+  onShowToast,
+  pageTitles,
+}) {
   const { bg, text, sf } = useTheme();
-  const { title, subtitle } = PAGE_TITLES[sidebarTab];
+  const { title, subtitle } = pageTitles[sidebarTab];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: bg, transition: "background 0.3s" }}>
-      <Sidebar activePage={sidebarTab} onNavigate={setSidebarTab} onLogout={onLogout} />
-
-      <main style={{
-        marginLeft: 240,
-        flex: 1,
-        padding: 32,
-        background: bg,           // ← explicit bg so it follows theme on toggle
-        color: text,
-        fontFamily: sf,
-        minHeight: "100vh",
-        transition: "background 0.3s, color 0.3s",
-      }}>
+      <Sidebar
+        activePage={sidebarTab}
+        onNavigate={setSidebarTab}
+        onLogout={onLogout}
+      />
+      <main
+        style={{
+          marginLeft: 240,
+          flex: 1,
+          padding: 32,
+          background: bg,
+          color: text,
+          fontFamily: sf,
+          minHeight: "100vh",
+          transition: "background 0.3s, color 0.3s",
+        }}
+      >
         <PageHeader title={title} subtitle={subtitle} />
 
         {sidebarTab === "dashboard" && (
           <OverviewTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />
         )}
-        {sidebarTab === "links"     && (
+        {sidebarTab === "links" && (
           <LinksTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />
         )}
         {sidebarTab === "analytics" && <AnalyticsTab />}
-        {sidebarTab === "settings"  && <SettingsTab />}
+        {sidebarTab === "settings" && <SettingsTab />}
       </main>
     </div>
   );
