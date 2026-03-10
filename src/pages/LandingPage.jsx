@@ -7,7 +7,15 @@ import { useAuth } from "../context/AuthContext";
 
 function AnimatedGrid({ dark }) {
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}
+    >
       <style>{`
         @keyframes gridMove {
           0% { transform: perspective(500px) rotateX(45deg) translateY(0px); }
@@ -67,13 +75,15 @@ export default function LandingPage({ onNavigate, onGenerate }) {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const { error: err } = await supabase.from("links").insert({
-      slug,
+      slug, // ← just the slug, no sh.rt prefix
       original_url: urlInput.trim(),
       user_id: user?.id ?? null,
       is_temporary: true,
       expires_at: expiresAt,
     });
 
+    // Show sh.rt cosmetically but real URL uses Vercel domain
+    onGenerate(`sh.rt/${slug}`, urlInput);
     setLoading(false);
 
     if (err) {
