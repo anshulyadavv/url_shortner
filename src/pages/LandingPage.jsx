@@ -80,8 +80,10 @@ export default function LandingPage({ onNavigate, onGenerate }) {
       setError("Failed to create link. Try again.");
       return;
     }
-
-    onGenerate(`${window.location.origin}/${slug}`, urlInput);
+    console.log("origin value:", JSON.stringify(window.location.origin));
+console.log("slug value:", JSON.stringify(slug));
+console.log("combined:", JSON.stringify(`${window.location.origin}/${slug}`));
+onGenerate(`${window.location.origin}/${slug}`);
   };
 
   return (

@@ -8,19 +8,11 @@ export async function handleRedirect() {
     return false;
   }
 
-  console.log("Slug detected:", slug);
-
   const { data, error } = await supabase
     .from("links")
     .select("id, original_url, expires_at")
     .eq("slug", slug)
     .maybeSingle();
-
-    console.log("slug being queried:", slug);
-console.log("data:", JSON.stringify(data));
-console.log("error:", JSON.stringify(error));
-
-  console.log("Supabase result:", data, error);
 
   // No match — let app render normally
   if (error || !data) return false;
@@ -39,6 +31,10 @@ console.log("error:", JSON.stringify(error));
   });
 
   // Redirect
-  window.location.href = data.original_url;
+  let redirectUrl = data.original_url;
+  if (!redirectUrl.startsWith("http://") && !redirectUrl.startsWith("https://")) {
+    redirectUrl = "https://" + redirectUrl;
+  }
+  window.location.href = redirectUrl;
   return true;
 }
