@@ -4,6 +4,7 @@ import { Icons } from "../data/icons";
 import { useState } from "react";
 
 export default function GeneratedPage({ shortUrl, onBack, onSignup, onCopy, onShowQR }) {
+    console.log("GeneratedPage shortUrl:", shortUrl);
   const { dark, bg, cardStyle, btnPrimary, btnSecondary, blue, sub, sf, text, cardBorder } = useTheme();
 
   return (
@@ -49,7 +50,7 @@ export default function GeneratedPage({ shortUrl, onBack, onSignup, onCopy, onSh
           {[
             { icon: Icons.copy,     label: "Copy",    action: () => onCopy(shortUrl) },
             { icon: Icons.qr,       label: "QR Code", action: () => onShowQR(shortUrl) },
-            { icon: Icons.external, label: "Open",    action: () => window.open(shortUrl, "_blank") },
+            { icon: Icons.external, label: "Open", action: () => window.open(shortUrl, "_blank") },
           ].map(({ icon, label, action }) => (
             <button key={label} onClick={action}
               style={{ ...btnSecondary(), padding: "10px 0", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 10 }}>
