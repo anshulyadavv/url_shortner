@@ -4,6 +4,8 @@ import { Icon } from "../components/UI";
 import { Icons } from "../data/icons";
 import { Sparkline, BarChart, DonutChart } from "../components/Charts";
 import { mockLinks, chartData } from "../data/mockData";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
 
 // ── Overview Tab ──────────────────────────────────────────────────────────────
 export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
@@ -359,63 +361,120 @@ export function AnalyticsTab() {
 }
 
 // ── Settings Tab ──────────────────────────────────────────────────────────────
+
 export function SettingsTab() {
   const { dark, toggleDark, blue, sub, sf, text, cardStyle, inputStyle, btnPrimary } = useTheme();
+  const { user } = useAuth();
 
-  const sections = [
-    {
-      title: "Account",
-      items: [
-        { label: "Display name",  value: "Alex Johnson",    type: "text"  },
-        { label: "Email address", value: "alex@company.io", type: "email" },
-      ],
-    },
-    {
-      title: "Appearance",
-      items: [{ label: "Dark mode", value: dark, type: "toggle", onChange: toggleDark }],
-    },
-    {
-      title: "Link Defaults",
-      items: [
-        { label: "Default expiry", value: "24 hours", type: "text" },
-        { label: "Custom domain",  value: "sh.rt",    type: "text" },
-      ],
-    },
-  ];
+  const fullName = user?.user_metadata?.name ?? "";
+  const [name, setName] = useState(fullName);
+  const [saving, setSaving] = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSavedMsg("");
+    const { error } = await supabase.auth.updateUser({
+      data: { name },
+    });
+    setSaving(false);
+    if (error) {
+      setSavedMsg("Error: " + error.message);
+    } else {
+      setSavedMsg("Saved!");
+      setTimeout(() => setSavedMsg(""), 2000);
+    }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600 }}>
-      {sections.map((section) => (
-        <div key={section.title} style={{ ...cardStyle(), padding: 24 }}>
-          <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
-            {section.title}
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {section.items.map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 14, fontFamily: sf, color: text }}>{item.label}</span>
-                {item.type === "toggle" ? (
-                  <button
-                    onClick={item.onChange}
-                    style={{
-                      width: 44, height: 26, borderRadius: 13, border: "none",
-                      cursor: "pointer", padding: 3, transition: "background 0.2s",
-                      background: item.value ? blue : dark ? "#3A3A3C" : "#ddd",
-                      display: "flex", alignItems: "center",
-                      justifyContent: item.value ? "flex-end" : "flex-start",
-                    }}
-                  >
-                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", transition: "all 0.2s" }} />
-                  </button>
-                ) : (
-                  <input defaultValue={item.value} style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
-                )}
-              </div>
-            ))}
+
+      {/* Account */}
+      <div style={{ ...cardStyle(), padding: 24 }}>
+        <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
+          Account
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Display name — editable */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Display name</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }}
+            />
+          </div>
+
+          {/* Email — read only */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Email address</span>
+            <input
+              value={user?.email ?? ""}
+              disabled
+              style={{
+                ...inputStyle(),
+                width: 220,
+                padding: "8px 12px",
+                fontSize: 14,
+                opacity: 0.5,
+                cursor: "not-allowed",
+              }}
+            />
           </div>
         </div>
-      ))}
-      <button style={{ ...btnPrimary, alignSelf: "flex-start" }}>Save Changes</button>
+      </div>
+
+      {/* Appearance */}
+      <div style={{ ...cardStyle(), padding: 24 }}>
+        <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
+          Appearance
+        </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Dark mode</span>
+          <button
+            onClick={toggleDark}
+            style={{
+              width: 44, height: 26, borderRadius: 13, border: "none",
+              cursor: "pointer", padding: 3, transition: "background 0.2s",
+              background: dark ? blue : "#ddd",
+              display: "flex", alignItems: "center",
+              justifyContent: dark ? "flex-end" : "flex-start",
+            }}
+          >
+            <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", transition: "all 0.2s" }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Link Defaults */}
+      <div style={{ ...cardStyle(), padding: 24 }}>
+        <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
+          Link Defaults
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Default expiry</span>
+            <input defaultValue="24 hours" style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Custom domain</span>
+            <input defaultValue="sh.rt" style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={handleSave} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.7 : 1 }}>
+          {saving ? "Saving…" : "Save Changes"}
+        </button>
+        {savedMsg && (
+          <span style={{ fontSize: 13, color: savedMsg.startsWith("Error") ? "#FF453A" : "#30D158", fontFamily: sf }}>
+            {savedMsg}
+          </span>
+        )}
+      </div>
+
     </div>
   );
 }
