@@ -1,5 +1,5 @@
 import { useAuth } from "./context/AuthContext";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { useToast } from "./hooks/useToast";
 import { Toast, QRModal } from "./components/UI";
@@ -23,6 +23,23 @@ const getGreeting = () => {
   if (hour < 24) return "Good evening";
   return "Good day";
 };
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  componentDidCatch(error) {
+    this.setState({ error: error.message });
+  }
+  render() {
+    return this.state.error ? (
+      <div style={{ color: "red", padding: 20 }}>{this.state.error}</div>
+    ) : (
+      this.props.children
+    );
+  }
+}
 
 // ── Main app ──────────────────────────────────────────────────────────────────
 function AppInner() {
@@ -56,11 +73,10 @@ function AppInner() {
   // ── Guest generated link ──────────────────────────────────────────────────
   const [generatedUrl, setGeneratedUrl] = useState("");
 
-  const handleGenerate = (displayUrl, originalInput, realUrl) => {
-    setGeneratedUrl({ display: displayUrl, real: realUrl });
+  const handleGenerate = (shortUrl) => {
+    setGeneratedUrl(shortUrl);
     setPage("generated");
   };
-
   const handleCopy = (txt) => {
     navigator.clipboard.writeText(txt).catch(() => {});
     showToast("Link copied!");
@@ -90,13 +106,15 @@ function AppInner() {
       )}
 
       {page === "generated" && (
-        <GeneratedPage
-          shortUrl={generatedUrl}
-          onBack={() => setPage("landing")}
-          onSignup={() => setPage("signup")}
-          onCopy={handleCopy}
-          onShowQR={setQrUrl}
-        />
+        <ErrorBoundary>
+          <GeneratedPage
+            shortUrl={generatedUrl}
+            onBack={() => setPage("landing")}
+            onSignup={() => setPage("signup")}
+            onCopy={handleCopy}
+            onShowQR={setQrUrl}
+          />
+        </ErrorBoundary>
       )}
 
       {page === "login" && (
