@@ -89,7 +89,7 @@ export default function LandingPage({ onNavigate, onGenerate }) {
     return;
   }
 
-  onGenerate(`sh.rt/${slug}`, urlInput);
+  onGenerate(`${window.location.origin}/${slug}`, urlInput);
 };
 
   return (
