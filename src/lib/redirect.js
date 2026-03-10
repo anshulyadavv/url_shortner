@@ -4,21 +4,26 @@ export async function handleRedirect() {
   const slug = window.location.pathname.slice(1);
 
   // Don't intercept app routes
-  if (!slug || ["login", "signup", "dashboard", "links", "analytics", "settings"].includes(slug)) {
+  if (
+    !slug ||
+    ["login", "signup", "dashboard", "links", "analytics", "settings"].includes(
+      slug,
+    )
+  ) {
     return false;
   }
 
   console.log("Slug detected:", slug);
 
-  const { data, error } = await supabase
+const { data, error } = await supabase
   .from("links")
   .select("id, original_url, expires_at")
   .eq("slug", slug)
-  .maybeSingle();
+  .maybeSingle(); 
 
-console.log("data:", data);
-console.log("error:", error);
-console.log("original_url:", data?.original_url);
+  console.log("data:", data);
+  console.log("error:", error);
+  console.log("original_url:", data?.original_url);
 
   // No match — let app render normally
   if (error || !data) return false;

@@ -72,6 +72,7 @@ export default function LandingPage({ onNavigate, onGenerate }) {
     setLoading(true);
 
     const slug = Math.random().toString(36).substr(2, 6);
+     console.log("generated slug:", slug);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const { error: err } = await supabase.from("links").insert({

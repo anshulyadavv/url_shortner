@@ -73,10 +73,10 @@ function AppInner() {
   // ── Guest generated link ──────────────────────────────────────────────────
   const [generatedUrl, setGeneratedUrl] = useState("");
 
-  const handleGenerate = (shortUrl) => {
-    setGeneratedUrl(shortUrl);
-    setPage("generated");
-  };
+const handleGenerate = (shortUrl) => {
+  setGeneratedUrl(shortUrl);
+  setPage("generated");
+};
   const handleCopy = (txt) => {
     navigator.clipboard.writeText(txt).catch(() => {});
     showToast("Link copied!");
