@@ -67,32 +67,30 @@ export default function LandingPage({ onNavigate, onGenerate }) {
   const [error, setError] = useState("");
 
   const handleGenerate = async () => {
-    if (!urlInput.trim()) return;
-    setError("");
-    setLoading(true);
+  if (!urlInput.trim()) return;
+  setError("");
+  setLoading(true);
 
-    const slug = Math.random().toString(36).substr(2, 6);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const slug = Math.random().toString(36).substr(2, 6);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    const { error: err } = await supabase.from("links").insert({
-      slug, // ← just the slug, no sh.rt prefix
-      original_url: urlInput.trim(),
-      user_id: user?.id ?? null,
-      is_temporary: true,
-      expires_at: expiresAt,
-    });
+  const { error: err } = await supabase.from("links").insert({
+    slug,
+    original_url: urlInput.trim(),
+    user_id: user?.id ?? null,
+    is_temporary: true,
+    expires_at: expiresAt,
+  });
 
-    // Show sh.rt cosmetically but real URL uses Vercel domain
-    onGenerate(`sh.rt/${slug}`, urlInput);
-    setLoading(false);
+  setLoading(false);
 
-    if (err) {
-      setError("Failed to create link. Try again.");
-      return;
-    }
+  if (err) {
+    setError("Failed to create link. Try again.");
+    return;
+  }
 
-    onGenerate(`sh.rt/${slug}`, urlInput, `${window.location.origin}/${slug}`);
-  };
+  onGenerate(`sh.rt/${slug}`, urlInput);
+};
 
   return (
     <div
