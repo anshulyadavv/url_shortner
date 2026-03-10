@@ -5,6 +5,38 @@ import { Icons } from "../data/icons";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 
+function AnimatedGrid({ dark }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+      <style>{`
+        @keyframes gridMove {
+          0% { transform: perspective(500px) rotateX(45deg) translateY(0px); }
+          100% { transform: perspective(500px) rotateX(45deg) translateY(80px); }
+        }
+        .grid-layer {
+          position: absolute;
+          inset: -100%;
+          width: 300%;
+          height: 300%;
+          background-image:
+            linear-gradient(rgba(0,122,255,0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,122,255,0.12) 1px, transparent 1px);
+          background-size: 80px 80px;
+          animation: gridMove 4s linear infinite;
+          transform-origin: center top;
+        }
+        .grid-fade {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse at 50% 0%, transparent 0%, ${dark ? "#0f0f10" : "#f5f5f7"} 70%);
+        }
+      `}</style>
+      <div className="grid-layer" />
+      <div className="grid-fade" />
+    </div>
+  );
+}
+
 export default function LandingPage({ onNavigate, onGenerate }) {
   const {
     dark,
@@ -62,10 +94,11 @@ export default function LandingPage({ onNavigate, onGenerate }) {
         transition: "all 0.3s",
       }}
     >
+      <AnimatedGrid dark={dark} />
       {/* ── Navbar ── */}
       <nav
         style={{
-          position: "sticky",
+          position: "relative",
           top: 0,
           zIndex: 40,
           borderBottom: `1px solid ${cardBorder}`,
@@ -177,6 +210,7 @@ export default function LandingPage({ onNavigate, onGenerate }) {
           padding: "80px 24px 60px",
           textAlign: "center",
           position: "relative",
+          zIndex: 1,
         }}
       >
         {/* Soft glow */}
@@ -185,12 +219,14 @@ export default function LandingPage({ onNavigate, onGenerate }) {
             position: "absolute",
             left: "50%",
             transform: "translateX(-50%)",
-            width: 600,
-            height: 300,
+            width: 800,
+            height: 500,
             borderRadius: "50%",
-            background:
-              "radial-gradient(ellipse, rgba(0,122,255,0.08) 0%, transparent 70%)",
+            background: dark
+              ? "radial-gradient(ellipse, rgba(0,122,255,0.15) 0%, rgba(48,209,88,0.05) 50%, transparent 70%)"
+              : "radial-gradient(ellipse, rgba(0,122,255,0.1) 0%, rgba(48,209,88,0.04) 50%, transparent 70%)",
             pointerEvents: "none",
+            filter: "blur(40px)",
           }}
         />
 
@@ -225,6 +261,7 @@ export default function LandingPage({ onNavigate, onGenerate }) {
         </div>
 
         <h1
+          key={dark}
           style={{
             fontSize: "clamp(44px, 6vw, 72px)",
             fontWeight: 700,
@@ -236,6 +273,8 @@ export default function LandingPage({ onNavigate, onGenerate }) {
               : "linear-gradient(180deg, #1d1d1f 50%, rgba(29,29,31,0.4))",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            color: "transparent",
           }}
         >
           Shorten links
@@ -266,6 +305,9 @@ export default function LandingPage({ onNavigate, onGenerate }) {
             gap: 8,
             maxWidth: 600,
             margin: "0 auto 16px",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)",
           }}
         >
           <div style={{ flex: 1, position: "relative" }}>
@@ -331,6 +373,8 @@ export default function LandingPage({ onNavigate, onGenerate }) {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
           gap: 16,
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {[
@@ -360,6 +404,9 @@ export default function LandingPage({ onNavigate, onGenerate }) {
               padding: 28,
               transition: "transform 0.2s, box-shadow 0.2s",
               cursor: "default",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-2px)";
