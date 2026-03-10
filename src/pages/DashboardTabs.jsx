@@ -1,17 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { Icon } from "../components/UI";
 import { Icons } from "../data/icons";
 import { Sparkline, BarChart, DonutChart } from "../components/Charts";
-import { mockLinks, chartData } from "../data/mockData";
+import { chartData } from "../data/mockData";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+
+function getTimeLeft(expiresAt) {
+  const diff = new Date(expiresAt) - new Date();
+  if (diff <= 0) return "Expired";
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const days = Math.floor(hours / 24);
+
+  if (days > 1) return `${days}d left`;
+  if (hours > 1) return `${hours}h left`;
+  return `${minutes}m left`;
+}
 
 // ── Overview Tab ──────────────────────────────────────────────────────────────
 export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
   const { dark, blue, sub, sf, text, cardStyle, inputStyle, btnPrimary } = useTheme();
+  const { user } = useAuth();
   const [urlInput, setUrlInput] = useState("");
   const [expiry, setExpiry] = useState("24h");
+  const [links, setLinks] = useState([]);
+  const [stats, setStats] = useState({ totalClicks: 0, activeLinks: 0, expiredLinks: 0 });
+  const [loading, setLoading] = useState(true);
 
   const expiryOptions = [
     { id: "24h",  label: "24h"       },
@@ -20,21 +37,88 @@ export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
     { id: "perm", label: "Permanent" },
   ];
 
-  const handleCreate = () => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const now = new Date().toISOString();
+
+    const { data: linksData } = await supabase
+      .from("links")
+      .select("id, slug, original_url, created_at, expires_at, is_temporary")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (linksData) {
+      const { data: clicksData } = await supabase
+        .from("clicks")
+        .select("link_id")
+        .in("link_id", linksData.map(l => l.id));
+
+      const clickCounts = {};
+      (clicksData || []).forEach(c => {
+        clickCounts[c.link_id] = (clickCounts[c.link_id] || 0) + 1;
+      });
+
+      const enriched = linksData.map(l => ({
+        ...l,
+        clicks: clickCounts[l.id] || 0,
+        expired: l.expires_at && new Date(l.expires_at) < new Date(),
+      }));
+
+      setLinks(enriched);
+      setStats({
+        totalClicks: Object.values(clickCounts).reduce((a, b) => a + b, 0),
+        activeLinks: enriched.filter(l => !l.expired).length,
+        expiredLinks: enriched.filter(l => l.expired).length,
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleCreate = async () => {
     if (!urlInput.trim()) return;
+
+    const slug = Math.random().toString(36).substr(2, 6);
+    let url = urlInput.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
+    }
+
+    const expiryMap = { "24h": 1, "7d": 7, "30d": 30 };
+    const days = expiryMap[expiry];
+    const expiresAt = days
+      ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
+    const { error } = await supabase.from("links").insert({
+      slug,
+      original_url: url,
+      user_id: user.id,
+      is_temporary: expiry === "24h",
+      expires_at: expiresAt,
+    });
+
+    if (error) {
+      onShowToast("Failed to create link.");
+      return;
+    }
+
     onShowToast("Short link created!");
     setUrlInput("");
+    fetchData();
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
         {[
-          { label: "Total Clicks",  value: "8,158", note: "+12.4%",   color: blue     },
-          { label: "Active Links",  value: "4",     note: "+1 today", color: "#30D158" },
-          { label: "Expired Links", value: "1",     note: "Clean up", color: "#FF453A" },
+          { label: "Total Clicks",  value: loading ? "—" : stats.totalClicks.toLocaleString(), note: "All time",  color: blue      },
+          { label: "Active Links",  value: loading ? "—" : stats.activeLinks,                  note: "Live now",  color: "#30D158" },
+          { label: "Expired Links", value: loading ? "—" : stats.expiredLinks,                 note: "Clean up",  color: "#FF453A" },
         ].map(({ label, value, note, color }) => (
           <div key={label} style={{ ...cardStyle(), padding: 24 }}>
             <p style={{ fontSize: 13, color: sub,  marginBottom: 8,  fontFamily: sf }}>{label}</p>
@@ -57,6 +141,7 @@ export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
             <input
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               placeholder="https://your-long-url.com/paste-here"
               style={{ ...inputStyle(), paddingLeft: 40 }}
             />
@@ -102,40 +187,50 @@ export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
         <h2 style={{ fontSize: 17, fontWeight: 600, marginBottom: 16, letterSpacing: -0.3, fontFamily: sf, color: text }}>
           Recent Links
         </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          {mockLinks.slice(0, 3).map((link) => (
-            <div
-              key={link.id}
-              style={{ display: "flex", alignItems: "center", gap: 16, padding: "12px 8px", borderRadius: 10, transition: "background 0.15s", cursor: "default" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            >
-              <div style={{
-                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                background: link.status === "expired" ? "rgba(255,69,58,0.1)" : "rgba(0,122,255,0.1)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Icon path={Icons.link} size={14} color={link.status === "expired" ? "#FF453A" : blue} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: blue, marginBottom: 2, fontFamily: sf }}>{link.short}</p>
-                <p style={{ fontSize: 12, color: sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: sf }}>{link.original}</p>
-              </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 1, fontFamily: sf, color: text }}>{link.clicks.toLocaleString()}</p>
-                <p style={{ fontSize: 11, color: sub, fontFamily: sf }}>clicks</p>
-              </div>
-              <button
-                onClick={() => onCopy(link.short)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: sub, padding: 6, borderRadius: 8, transition: "color 0.15s" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = blue; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = sub; }}
+        {loading ? (
+          <p style={{ color: sub, fontFamily: sf, fontSize: 14 }}>Loading...</p>
+        ) : links.length === 0 ? (
+          <p style={{ color: sub, fontFamily: sf, fontSize: 14 }}>No links yet. Create your first one above!</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            {links.slice(0, 3).map((link) => (
+              <div
+                key={link.id}
+                style={{ display: "flex", alignItems: "center", gap: 16, padding: "12px 8px", borderRadius: 10, transition: "background 0.15s", cursor: "default" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
               >
-                <Icon path={Icons.copy} size={15} />
-              </button>
-            </div>
-          ))}
-        </div>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                  background: link.expired ? "rgba(255,69,58,0.1)" : "rgba(0,122,255,0.1)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Icon path={Icons.link} size={14} color={link.expired ? "#FF453A" : blue} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: blue, marginBottom: 2, fontFamily: sf }}>
+                    {window.location.origin}/{link.slug}
+                  </p>
+                  <p style={{ fontSize: 12, color: sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: sf }}>
+                    {link.original_url}
+                  </p>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 1, fontFamily: sf, color: text }}>{link.clicks.toLocaleString()}</p>
+                  <p style={{ fontSize: 11, color: sub, fontFamily: sf }}>clicks</p>
+                </div>
+                <button
+                  onClick={() => onCopy(`${window.location.origin}/${link.slug}`)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: sub, padding: 6, borderRadius: 8, transition: "color 0.15s" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = blue; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = sub; }}
+                >
+                  <Icon path={Icons.copy} size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -144,18 +239,63 @@ export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
 // ── Links Tab ─────────────────────────────────────────────────────────────────
 export function LinksTab({ onCopy, onShowQR, onShowToast }) {
   const { dark, blue, sub, sf, text, cardStyle, inputStyle, btnPrimary, cardBorder } = useTheme();
+  const { user } = useAuth();
+  const [links, setLinks] = useState([]);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockLinks.filter(
-    (l) => l.short.includes(search) || l.original.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    fetchLinks();
+  }, []);
+
+  const fetchLinks = async () => {
+    setLoading(true);
+    const { data: linksData } = await supabase
+      .from("links")
+      .select("id, slug, original_url, created_at, expires_at, is_temporary")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (linksData) {
+      const { data: clicksData } = await supabase
+        .from("clicks")
+        .select("link_id")
+        .in("link_id", linksData.map(l => l.id));
+
+      const clickCounts = {};
+      (clicksData || []).forEach(c => {
+        clickCounts[c.link_id] = (clickCounts[c.link_id] || 0) + 1;
+      });
+
+      const enriched = linksData.map(l => ({
+        ...l,
+        clicks: clickCounts[l.id] || 0,
+        expired: l.expires_at && new Date(l.expires_at) < new Date(),
+        expiry: l.expires_at
+  ? (new Date(l.expires_at) < new Date() ? "Expired" : getTimeLeft(l.expires_at))
+  : "Permanent",
+      }));
+
+      setLinks(enriched);
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async (id) => {
+    await supabase.from("links").delete().eq("id", id);
+    onShowToast("Link deleted.");
+    fetchLinks();
+  };
+
+  const filtered = links.filter(
+    (l) => l.slug.includes(search) || l.original_url.toLowerCase().includes(search.toLowerCase())
   );
 
   const rowActions = (link) => [
-    { icon: Icons.copy,     title: "Copy",   action: () => onCopy(link.short),         danger: false },
-    { icon: Icons.external, title: "Open",   action: () => {},                          danger: false },
-    { icon: Icons.qr,       title: "QR",     action: () => onShowQR(link.short),        danger: false },
-    { icon: Icons.trash,    title: "Delete", action: () => onShowToast("Link deleted"), danger: true  },
+    { icon: Icons.copy,     title: "Copy",   action: () => onCopy(`${window.location.origin}/${link.slug}`), danger: false },
+    { icon: Icons.external, title: "Open",   action: () => window.open(`${window.location.origin}/${link.slug}`, "_blank"), danger: false },
+    { icon: Icons.qr,       title: "QR",     action: () => onShowQR(`${window.location.origin}/${link.slug}`), danger: false },
+    { icon: Icons.trash,    title: "Delete", action: () => handleDelete(link.id), danger: true },
   ];
 
   return (
@@ -173,9 +313,6 @@ export function LinksTab({ onCopy, onShowQR, onShowToast }) {
             style={{ ...inputStyle(), paddingLeft: 40 }}
           />
         </div>
-        <button style={{ ...btnPrimary, padding: "11px 18px", display: "flex", alignItems: "center", gap: 6, fontSize: 14, whiteSpace: "nowrap" }}>
-          + New Link
-        </button>
       </div>
 
       {/* Table */}
@@ -190,74 +327,69 @@ export function LinksTab({ onCopy, onShowQR, onShowToast }) {
           ))}
         </div>
 
-        {filtered.map((link, i) => (
-          <div
-            key={link.id}
-            style={{
-              display: "grid", gridTemplateColumns: "1.2fr 2fr 80px 130px 100px 110px",
-              padding: "14px 20px", alignItems: "center",
-              borderBottom: i < filtered.length - 1 ? `1px solid ${cardBorder}` : "none",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-          >
-            <span style={{ fontSize: 14, fontWeight: 600, color: blue, fontFamily: sf }}>{link.short}</span>
-            <span style={{ fontSize: 13, color: sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 16, fontFamily: sf }}>{link.original}</span>
-            <span style={{ fontSize: 14, fontWeight: 600, fontFamily: sf, color: text }}>{link.clicks.toLocaleString()}</span>
-            <span>
-              <span style={{
-                fontSize: 12, padding: "4px 8px", borderRadius: 6, fontWeight: 500, fontFamily: sf,
-                background: link.status === "expired" ? "rgba(255,69,58,0.1)" : link.expiry === "Permanent" ? "rgba(48,209,88,0.1)" : "rgba(0,122,255,0.1)",
-                color: link.status === "expired" ? "#FF453A" : link.expiry === "Permanent" ? "#30D158" : blue,
-              }}>
-                {link.expiry}
+        {loading ? (
+          <p style={{ padding: 24, color: sub, fontFamily: sf, fontSize: 14 }}>Loading...</p>
+        ) : filtered.length === 0 ? (
+          <p style={{ padding: 24, color: sub, fontFamily: sf, fontSize: 14 }}>No links found.</p>
+        ) : (
+          filtered.map((link, i) => (
+            <div
+              key={link.id}
+              style={{
+                display: "grid", gridTemplateColumns: "1.2fr 2fr 80px 130px 100px 110px",
+                padding: "14px 20px", alignItems: "center",
+                borderBottom: i < filtered.length - 1 ? `1px solid ${cardBorder}` : "none",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 600, color: blue, fontFamily: sf }}>
+                {window.location.origin}/{link.slug}
               </span>
-            </span>
-            <span style={{ fontSize: 13, color: sub, fontFamily: sf }}>{link.created}</span>
-            <div style={{ display: "flex", gap: 4 }}>
-              {rowActions(link).map(({ icon, title, action, danger }) => (
-                <button
-                  key={title} onClick={action} title={title}
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: "5px 6px", borderRadius: 7, transition: "all 0.15s", color: sub }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = danger ? "rgba(255,69,58,0.1)" : dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
-                    e.currentTarget.style.color = danger ? "#FF453A" : text;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = sub;
-                  }}
-                >
-                  <Icon path={icon} size={14} />
-                </button>
-              ))}
+              <span style={{ fontSize: 13, color: sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 16, fontFamily: sf }}>
+                {link.original_url}
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: sf, color: text }}>{link.clicks.toLocaleString()}</span>
+              <span>
+                <span style={{
+                  fontSize: 12, padding: "4px 8px", borderRadius: 6, fontWeight: 500, fontFamily: sf,
+                  background: link.expired ? "rgba(255,69,58,0.1)" : link.expiry === "Permanent" ? "rgba(48,209,88,0.1)" : "rgba(0,122,255,0.1)",
+                  color: link.expired ? "#FF453A" : link.expiry === "Permanent" ? "#30D158" : blue,
+                }}>
+                  {link.expiry}
+                </span>
+              </span>
+              <span style={{ fontSize: 13, color: sub, fontFamily: sf }}>
+                {new Date(link.created_at).toLocaleDateString()}
+              </span>
+              <div style={{ display: "flex", gap: 4 }}>
+                {rowActions(link).map(({ icon, title, action, danger }) => (
+                  <button
+                    key={title} onClick={action} title={title}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: "5px 6px", borderRadius: 7, transition: "all 0.15s", color: sub }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = danger ? "rgba(255,69,58,0.1)" : dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+                      e.currentTarget.style.color = danger ? "#FF453A" : text;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = sub;
+                    }}
+                  >
+                    <Icon path={icon} size={14} />
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {/* Pagination */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0" }}>
         <span style={{ fontSize: 13, color: sub, fontFamily: sf }}>
-          Showing 1–{filtered.length} of {mockLinks.length} links
+          Showing {filtered.length} of {links.length} links
         </span>
-        <div style={{ display: "flex", gap: 6 }}>
-          {[1, 2, 3].map((p) => (
-            <button
-              key={p} onClick={() => setCurrentPage(p)}
-              style={{
-                width: 32, height: 32, borderRadius: 8, border: "none",
-                cursor: "pointer", fontFamily: sf, fontSize: 13,
-                fontWeight: currentPage === p ? 600 : 400, transition: "all 0.15s",
-                background: currentPage === p ? blue : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
-                color: currentPage === p ? "white" : sub,
-              }}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -303,11 +435,6 @@ export function AnalyticsTab() {
           </div>
         </div>
         <Sparkline data={chartData} color={blue} height={80} />
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-          {["Mar 1", "", "", "", "Mar 8", "", "", "", "Mar 15"].map((l, i) => (
-            <span key={i} style={{ fontSize: 10, color: sub, fontFamily: sf }}>{l}</span>
-          ))}
-        </div>
       </div>
 
       {/* Device + Country */}
@@ -339,21 +466,6 @@ export function AnalyticsTab() {
         <div style={{ ...cardStyle(), padding: 28 }}>
           <h2 style={{ fontSize: 17, fontWeight: 600, letterSpacing: -0.3, marginBottom: 20, fontFamily: sf, color: text }}>Top Countries</h2>
           <BarChart data={[420, 310, 240, 180, 140, 90]} labels={["US", "UK", "DE", "CA", "FR", "AU"]} color={blue} dark={dark} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 16 }}>
-            {[
-              { country: "🇺🇸 United States", clicks: 420, pct: "34%" },
-              { country: "🇬🇧 United Kingdom", clicks: 310, pct: "25%" },
-              { country: "🇩🇪 Germany",         clicks: 240, pct: "19%" },
-            ].map(({ country, clicks, pct }) => (
-              <div key={country} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 13, fontFamily: sf, color: text }}>{country}</span>
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: sub, fontFamily: sf }}>{clicks}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: blue, background: "rgba(0,122,255,0.1)", padding: "2px 7px", borderRadius: 6, fontFamily: sf }}>{pct}</span>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
@@ -361,7 +473,6 @@ export function AnalyticsTab() {
 }
 
 // ── Settings Tab ──────────────────────────────────────────────────────────────
-
 export function SettingsTab() {
   const { dark, toggleDark, blue, sub, sf, text, cardStyle, inputStyle, btnPrimary } = useTheme();
   const { user } = useAuth();
@@ -374,9 +485,7 @@ export function SettingsTab() {
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg("");
-    const { error } = await supabase.auth.updateUser({
-      data: { name },
-    });
+    const { error } = await supabase.auth.updateUser({ data: { name } });
     setSaving(false);
     if (error) {
       setSavedMsg("Error: " + error.message);
@@ -388,44 +497,22 @@ export function SettingsTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600 }}>
-
-      {/* Account */}
       <div style={{ ...cardStyle(), padding: 24 }}>
         <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
           Account
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* Display name — editable */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Display name</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }}
-            />
+            <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
           </div>
-
-          {/* Email — read only */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Email address</span>
-            <input
-              value={user?.email ?? ""}
-              disabled
-              style={{
-                ...inputStyle(),
-                width: 220,
-                padding: "8px 12px",
-                fontSize: 14,
-                opacity: 0.5,
-                cursor: "not-allowed",
-              }}
-            />
+            <input value={user?.email ?? ""} disabled style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14, opacity: 0.5, cursor: "not-allowed" }} />
           </div>
         </div>
       </div>
 
-      {/* Appearance */}
       <div style={{ ...cardStyle(), padding: 24 }}>
         <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
           Appearance
@@ -442,25 +529,8 @@ export function SettingsTab() {
               justifyContent: dark ? "flex-end" : "flex-start",
             }}
           >
-            <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", transition: "all 0.2s" }} />
+            <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
           </button>
-        </div>
-      </div>
-
-      {/* Link Defaults */}
-      <div style={{ ...cardStyle(), padding: 24 }}>
-        <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>
-          Link Defaults
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Default expiry</span>
-            <input defaultValue="24 hours" style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Custom domain</span>
-            <input defaultValue="sh.rt" style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
-          </div>
         </div>
       </div>
 
@@ -474,7 +544,6 @@ export function SettingsTab() {
           </span>
         )}
       </div>
-
     </div>
   );
 }
