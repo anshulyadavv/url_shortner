@@ -263,10 +263,10 @@ export default function LandingPage({ onNavigate, onGenerate }) {
                 ...inputStyle(),
                 background: "transparent",
                 border: "none",
-                borderRadius: 8, // already there ✓
+                borderRadius: 8, 
                 paddingLeft: 44,
-                width: "100%", // ← ADD THIS
-                boxSizing: "border-box", // ← ADD THIS
+                width: "100%", 
+                boxSizing: "border-box", 
               }}
             />
           </div>
