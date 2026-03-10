@@ -91,7 +91,8 @@ export default function LandingPage({ onNavigate, onGenerate }) {
     }
     console.log("slug:", slug);
     console.log("full url:", `${window.location.origin}/${slug}`);
-    onGenerate(`${window.location.origin}/${slug}`, urlInput);
+    const baseUrl = window.location.origin || "https://url-shortner-git-features-anshulyadavvs-projects.vercel.app";
+onGenerate(`${baseUrl}/${slug}`, urlInput);
   };
 
   return (

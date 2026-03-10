@@ -1,3 +1,6 @@
 {
+  "github": {
+    "productionDeployment": true
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
