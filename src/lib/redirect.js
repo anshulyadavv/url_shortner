@@ -11,12 +11,14 @@ export async function handleRedirect() {
   console.log("Slug detected:", slug);
 
   const { data, error } = await supabase
-    .from("links")
-    .select("id, original_url, expires_at")
-    .eq("slug", slug)
-    .single();
+  .from("links")
+  .select("id, original_url, expires_at")
+  .eq("slug", slug)
+  .maybeSingle();
 
-  console.log("Supabase result:", data, error);
+console.log("data:", data);
+console.log("error:", error);
+console.log("original_url:", data?.original_url);
 
   // No match — let app render normally
   if (error || !data) return false;
