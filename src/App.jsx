@@ -34,8 +34,14 @@ function AppInner() {
 
   const PAGE_TITLES = {
     dashboard: { title: "Dashboard", subtitle: `${getGreeting()}, ${name} 👋` },
-    links: { title: "My Links", subtitle: "Manage and track your shortened links" },
-    analytics: { title: "Analytics", subtitle: "Detailed performance insights" },
+    links: {
+      title: "My Links",
+      subtitle: "Manage and track your shortened links",
+    },
+    analytics: {
+      title: "Analytics",
+      subtitle: "Detailed performance insights",
+    },
     settings: { title: "Settings", subtitle: "Account preferences" },
   };
 
@@ -50,8 +56,8 @@ function AppInner() {
   // ── Guest generated link ──────────────────────────────────────────────────
   const [generatedUrl, setGeneratedUrl] = useState("");
 
-  const handleGenerate = (shortUrl) => {
-    setGeneratedUrl(shortUrl);
+  const handleGenerate = (displayUrl, originalInput, realUrl) => {
+    setGeneratedUrl({ display: displayUrl, real: realUrl });
     setPage("generated");
   };
 
@@ -138,7 +144,14 @@ function DashboardShell({
   const { title, subtitle } = pageTitles[sidebarTab];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: bg, transition: "background 0.3s" }}>
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: bg,
+        transition: "background 0.3s",
+      }}
+    >
       <Sidebar
         activePage={sidebarTab}
         onNavigate={setSidebarTab}
@@ -159,10 +172,18 @@ function DashboardShell({
         <PageHeader title={title} subtitle={subtitle} />
 
         {sidebarTab === "dashboard" && (
-          <OverviewTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />
+          <OverviewTab
+            onCopy={onCopy}
+            onShowQR={onShowQR}
+            onShowToast={onShowToast}
+          />
         )}
         {sidebarTab === "links" && (
-          <LinksTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />
+          <LinksTab
+            onCopy={onCopy}
+            onShowQR={onShowQR}
+            onShowToast={onShowToast}
+          />
         )}
         {sidebarTab === "analytics" && <AnalyticsTab />}
         {sidebarTab === "settings" && <SettingsTab />}
