@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { Icon } from "../components/UI";
 import { Icons } from "../data/icons";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
 
 export default function LandingPage({ onNavigate, onGenerate }) {
   const {
@@ -20,9 +22,33 @@ export default function LandingPage({ onNavigate, onGenerate }) {
   } = useTheme();
   const [urlInput, setUrlInput] = useState("");
 
-  const handleGenerate = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleGenerate = async () => {
     if (!urlInput.trim()) return;
-    const slug = Math.random().toString(36).substr(2, 5);
+    setError("");
+    setLoading(true);
+
+    const slug = Math.random().toString(36).substr(2, 6);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    const { error: err } = await supabase.from("links").insert({
+      slug,
+      original_url: urlInput.trim(),
+      user_id: user?.id ?? null,
+      is_temporary: true,
+      expires_at: expiresAt,
+    });
+
+    setLoading(false);
+
+    if (err) {
+      setError("Failed to create link. Try again.");
+      return;
+    }
+
     onGenerate("sh.rt/" + slug, urlInput);
   };
 
@@ -263,24 +289,31 @@ export default function LandingPage({ onNavigate, onGenerate }) {
                 ...inputStyle(),
                 background: "transparent",
                 border: "none",
-                borderRadius: 8, 
+                borderRadius: 8,
                 paddingLeft: 44,
-                width: "100%", 
-                boxSizing: "border-box", 
+                width: "100%",
+                boxSizing: "border-box",
               }}
             />
           </div>
+          {error && (
+            <p style={{ fontSize: 13, color: "#FF453A", marginBottom: 8 }}>
+              {error}
+            </p>
+          )}
           <button
             onClick={handleGenerate}
+            disabled={loading}
             style={{
               ...btnPrimary,
               borderRadius: 10,
               whiteSpace: "nowrap",
               padding: "12px 20px",
               fontSize: 14,
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            Generate Short URL
+            {loading ? "Generating…" : "Generate Short URL"}
           </button>
         </div>
 
