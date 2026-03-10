@@ -14,7 +14,11 @@ export async function handleRedirect() {
     .from("links")
     .select("id, original_url, expires_at")
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
+
+    console.log("slug being queried:", slug);
+console.log("data:", JSON.stringify(data));
+console.log("error:", JSON.stringify(error));
 
   console.log("Supabase result:", data, error);
 
