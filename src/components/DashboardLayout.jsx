@@ -2,6 +2,7 @@ import { useTheme } from "../context/ThemeContext";
 import { Icon } from "./UI";
 import { Icons } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
+import { Sparkline, BarChart, DonutChart, RollingNumber } from "../components/Charts";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: Icons.grid },
