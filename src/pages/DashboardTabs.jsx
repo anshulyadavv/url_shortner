@@ -441,6 +441,12 @@ export function SettingsTab() {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
 
+  const [currentPass, setCurrentPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [passMsg, setPassMsg] = useState("");
+  const [savingPass, setSavingPass] = useState(false);
+
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg("");
@@ -448,6 +454,24 @@ export function SettingsTab() {
     setSaving(false);
     if (error) { setSavedMsg("Error: " + error.message); }
     else { setSavedMsg("Saved!"); setTimeout(() => setSavedMsg(""), 2000); }
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPass || !newPass || !confirmPass) { setPassMsg("Please fill in all fields."); return; }
+    if (newPass.length < 6) { setPassMsg("New password must be at least 6 characters."); return; }
+    if (newPass !== confirmPass) { setPassMsg("New passwords don't match."); return; }
+    setSavingPass(true);
+    setPassMsg("");
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPass });
+    if (signInError) { setPassMsg("Current password is incorrect."); setSavingPass(false); return; }
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+    setSavingPass(false);
+    if (error) { setPassMsg("Error: " + error.message); }
+    else {
+      setPassMsg("Password updated!");
+      setCurrentPass(""); setNewPass(""); setConfirmPass("");
+      setTimeout(() => setPassMsg(""), 3000);
+    }
   };
 
   return (
@@ -462,6 +486,32 @@ export function SettingsTab() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Email address</span>
             <input value={user?.email ?? ""} disabled style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14, opacity: 0.5, cursor: "not-allowed" }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ ...cardStyle(), padding: 24 }}>
+        <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>Change Password</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            { label: "Current password", value: currentPass, set: setCurrentPass },
+            { label: "New password",     value: newPass,     set: setNewPass     },
+            { label: "Confirm password", value: confirmPass, set: setConfirmPass },
+          ].map(({ label, value, set }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 14, fontFamily: sf, color: text }}>{label}</span>
+              <input type="password" value={value} onChange={(e) => set(e.target.value)} style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
+            </div>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+            <button onClick={handleChangePassword} disabled={savingPass} style={{ ...btnPrimary, opacity: savingPass ? 0.7 : 1 }}>
+              {savingPass ? "Updating…" : "Update Password"}
+            </button>
+            {passMsg && (
+              <span style={{ fontSize: 13, fontFamily: sf, color: passMsg === "Password updated!" ? "#30D158" : "#FF453A" }}>
+                {passMsg}
+              </span>
+            )}
           </div>
         </div>
       </div>
