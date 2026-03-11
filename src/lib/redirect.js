@@ -4,7 +4,12 @@ export async function handleRedirect() {
   const slug = window.location.pathname.slice(1);
 
   // Don't intercept app routes
-  if (!slug || ["login", "signup", "dashboard", "links", "analytics", "settings"].includes(slug)) {
+  if (
+    !slug ||
+    ["login", "signup", "dashboard", "links", "analytics", "settings"].includes(
+      slug,
+    )
+  ) {
     return false;
   }
 
@@ -25,14 +30,36 @@ export async function handleRedirect() {
   }
 
   // Track click
-  await supabase.from("clicks").insert({
-    link_id: data.id,
-    clicked_at: new Date().toISOString(),
-  });
+  const device = /mobile|android|iphone|ipad/i.test(navigator.userAgent)
+    ? "Mobile"
+    : "Desktop";
+
+  const referrer = document.referrer
+    ? new URL(document.referrer).hostname
+    : "Direct";
+
+  let country = null;
+  try {
+    const geo = await fetch("https://ipapi.co/json/");
+    const geoData = await geo.json();
+    country = geoData.country_name;
+  } catch {
+    country = null;
+  }
+await supabase.from("clicks").insert({
+  link_id: data.id,
+  clicked_at: new Date().toISOString(),
+  device,
+  referrer,
+  country,
+});
 
   // Redirect
   let redirectUrl = data.original_url;
-  if (!redirectUrl.startsWith("http://") && !redirectUrl.startsWith("https://")) {
+  if (
+    !redirectUrl.startsWith("http://") &&
+    !redirectUrl.startsWith("https://")
+  ) {
     redirectUrl = "https://" + redirectUrl;
   }
   window.location.href = redirectUrl;
