@@ -1,267 +1,156 @@
-# 🔗 Apple-Style URL Shortener
+# short.ly
 
-A modern **URL shortening platform** with a clean **Apple-inspired interface**, built for simplicity, elegance, and usability.
-
-This application allows users to generate **temporary short URLs instantly** or create an account to manage **permanent links with analytics and expiration controls**.
-
-The UI follows a **minimal Apple ecosystem design philosophy** similar to **macOS settings, iCloud dashboards, and Notion-style layouts**.
+A fast, modern URL shortener built with React and Supabase. Create short links, track clicks in real time, and analyze your audience — all from a clean, responsive dashboard.
 
 ---
 
-# ✨ Features
+## Features
 
-### 🔹 Temporary Link Generation
-
-Guest users can instantly create short URLs that automatically expire after **24 hours**.
-
-### 🔹 User Authentication
-
-Users can sign up or log in to access advanced features.
-
-### 🔹 Custom Expiry Controls
-
-Authenticated users can create links with configurable expiration:
-
-* 24 hours
-* 7 days
-* 30 days
-* Custom date
-* Permanent
-
-### 🔹 Link Management Dashboard
-
-Users can manage all generated links in a **clean dashboard interface**.
-
-Actions available per link:
-
-* Copy link
-* Open link
-* Edit expiry
-* Delete link
-
-### 🔹 Analytics Dashboard
-
-Provides insights into link performance including:
-
-* Total clicks
-* Active links
-* Expired links
-* Click activity over time
-* Device distribution
-* Country distribution
-
-### 🔹 QR Code Generation
-
-Each shortened link can generate a **QR code for easy sharing**.
-
-### 🔹 Apple-Inspired UI
-
-The interface is designed with:
-
-* minimal layouts
-* soft rounded cards
-* elegant spacing
-* subtle shadows
-* smooth interactions
+- **URL Shortening** — Generate short links instantly with configurable expiry (24h, 7 days, 30 days, or permanent)
+- **Click Tracking** — Every redirect is tracked with device type, country, and referrer
+- **Analytics Dashboard** — Visualize clicks over time, device breakdown, and top countries
+- **Authentication** — Email/password and Google OAuth sign-in via Supabase Auth
+- **Link Management** — Search, copy, preview QR codes, and delete links from one place
+- **Dark Mode** — Full dark/light theme support
+- **Geo Detection** — Country detection on every click via IP lookup
 
 ---
 
-# 🖥 UI Screens
+## Tech Stack
 
-The application currently includes the following screens:
-
-### Landing Page
-
-Guest users can quickly generate a temporary short link.
-
-Features shown:
-
-* URL input field
-* Generate short link button
-* Product highlights
-* Navigation for login and signup
+| Layer       | Technology          |
+|-------------|---------------------|
+| Frontend    | React 18 + Vite     |
+| Backend     | Supabase (Postgres) |
+| Auth        | Supabase Auth       |
+| Deployment  | Vercel              |
+| Styling     | Inline styles + CSS |
 
 ---
 
-### Login Page
+## Getting Started
 
-Simple authentication screen including:
+### Prerequisites
 
-* Email input
-* Password input
-* Google login option
-* Forgot password link
+- Node.js 18+
+- A Supabase project
+- A Vercel account (for deployment)
 
----
+### Installation
 
-### Signup Page
-
-Account creation screen with:
-
-* Email
-* Password
-* Confirm password
-
----
-
-### Main Dashboard
-
-Primary workspace for authenticated users.
-
-Includes:
-
-* Sidebar navigation
-* Create new short link panel
-* Expiry controls
-* Links management table
-
----
-
-### Links Table
-
-Displays all created links with details:
-
-* Short URL
-* Original URL
-* Click count
-* Expiry date
-* Creation date
-
-Each row includes quick actions for managing links.
-
----
-
-### Analytics Page
-
-Displays insights using visual charts:
-
-* Total clicks
-* Active links
-* Expired links
-* Click activity graph
-* Device usage distribution
-* Country distribution
-
----
-
-### Temporary Link Result (Guest Mode)
-
-When a guest user creates a link, they receive:
-
-* Generated short URL
-* Copy button
-* QR code preview
-* Notification that the link expires in **24 hours**
-
-Users are encouraged to create an account to save links permanently.
-
----
-
-# 🧱 Project Structure
-
-```
-url-shortener/
-
-frontend/
-│
-├── src
-│   ├── components
-│   ├── pages
-│   ├── services
-│   ├── context
-│   └── styles
-│
-├── public
-└── package.json
-
-README.md
-LICENSE
-```
-
----
-
-# 🛠 Tech Stack
-
-Frontend
-
-* React
-* TailwindCSS
-* React Router
-* Axios
-
-Backend *(planned)*
-
-* Node.js
-* Express
-* PostgreSQL / MongoDB
-* Redis (for caching)
-
----
-
-# 🚀 Getting Started
-
-### Clone the repository
-
-```
-git clone https://github.com/yourusername/url-shortener.git
-```
-
-### Navigate into the project
-
-```
-cd url-shortener/frontend
-```
-
-### Install dependencies
-
-```
+```bash
+git clone https://github.com/anshulyadavv/url_shortner.git
+cd url_shortner
 npm install
 ```
 
-### Start development server
+### Environment Variables
 
+Create a `.env` file in the root directory:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+### Database Setup
+
+Run the following SQL in your Supabase SQL editor:
+
+```sql
+create table links (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  original_url text not null,
+  user_id uuid references auth.users(id) null,
+  is_temporary boolean default false,
+  expires_at timestamptz,
+  created_at timestamptz default now()
+);
+
+create table clicks (
+  id uuid primary key default gen_random_uuid(),
+  link_id uuid references links(id) on delete cascade,
+  clicked_at timestamptz default now(),
+  country text,
+  device text,
+  referrer text
+);
+```
+
+Then enable Row Level Security and add the following policies on the `links` table:
+
+- **Anyone can read links by slug** — `SELECT`, `using(true)`
+- **Users can insert their own links** — `INSERT`, authenticated
+- **Users can view their own links** — `SELECT`, `using(auth.uid() = user_id)`
+
+### Running Locally
+
+```bash
 npm run dev
 ```
 
-The application will run at:
+---
+
+## Deployment
+
+### Vercel
+
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel → Settings → Environment Variables
+3. Add a `vercel.json` to the project root for SPA routing:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+4. Set your production branch in Vercel → Settings → General → Production Branch
+
+---
+
+## Project Structure
 
 ```
-http://localhost:5173
+src/
+├── components/
+│   ├── Charts.jsx        # Sparkline, BarChart, DonutChart, RollingNumber
+│   ├── DashboardLayout.jsx
+│   └── UI.jsx
+├── context/
+│   ├── AuthContext.jsx
+│   └── ThemeContext.jsx
+├── data/
+│   └── icons.js
+├── lib/
+│   ├── redirect.js       # Handles short link redirects before app renders
+│   └── supabase.js
+├── pages/
+│   ├── AuthPages.jsx
+│   ├── DashboardTabs.jsx
+│   ├── GeneratedPage.jsx
+│   └── LandingPage.jsx
+├── App.jsx
+└── main.jsx
 ```
 
 ---
 
-# 📊 Planned Features
+## How Redirects Work
 
-Upcoming improvements include:
+Short link redirects are handled in `src/lib/redirect.js` before the React app mounts. When a user visits a short URL:
 
-* Custom domain support
-* Rate limiting
-* Link password protection
-* Advanced analytics
-* API access
-* Team workspaces
+1. The slug is extracted from the path
+2. Supabase is queried for the matching link
+3. Expiry is checked — expired links redirect to home
+4. A click is recorded with device, referrer, and country data
+5. The user is redirected to the original URL
 
----
-
-# 🎯 Purpose of the Project
-
-This project demonstrates:
-
-* modern frontend architecture
-* dashboard UI design
-* SaaS-style product development
-* scalable URL shortening system design
+This approach ensures redirects are fast and don't require the full React app to load first.
 
 ---
 
-# 📄 License
+## License
 
-This project is licensed under the **MIT License**.
-
----
-
-# 👤 Author
-
-Built with ❤ by **Anshul Yadav**
+MIT
