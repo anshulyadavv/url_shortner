@@ -153,4 +153,14 @@ This approach ensures redirects are fast and don't require the full React app to
 
 ## License
 
-MIT
+GPL-3.0 license
+
+---
+
+<div align="center">
+
+Made with ❤️ by **Anshul**
+
+If this project helped you, consider giving it a ⭐ — it means a lot!
+
+</div>
