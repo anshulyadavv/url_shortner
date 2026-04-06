@@ -43,6 +43,7 @@ function PageLayout({ children, title, subtitle }) {
       <Navbar />
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "80px 24px", position: "relative", zIndex: 1, textAlign: "center" }}>
         <h1
+          key={dark}
           style={{
             fontSize: "clamp(40px, 5vw, 56px)",
             fontWeight: 700,
