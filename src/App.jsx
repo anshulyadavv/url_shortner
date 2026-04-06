@@ -7,7 +7,9 @@ import { Sidebar, PageHeader } from "./components/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
 import GeneratedPage from "./pages/GeneratedPage";
 import { LoginPage, SignupPage } from "./pages/AuthPages";
+import { FeaturesPage, DocsPage, PricingPage } from "./pages/StaticPages";
 import { supabase } from "./lib/supabase";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import {
   OverviewTab,
   LinksTab,
@@ -15,7 +17,6 @@ import {
   SettingsTab,
 } from "./pages/DashboardTabs";
 
-// ── Greeting helper (no user needed) ─────────────────────────────────────────
 const getGreeting = () => {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -24,10 +25,10 @@ const getGreeting = () => {
   return "Good day";
 };
 
-// ── Main app ──────────────────────────────────────────────────────────────────
-function AppInner() {
+function AppRoutes() {
   const { bg, text, sf } = useTheme();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const fullName = user?.user_metadata?.name ?? "";
   const name = fullName.split(" ")[0] || "there";
@@ -39,20 +40,14 @@ function AppInner() {
     settings: { title: "Settings", subtitle: "Account preferences" },
   };
 
-  // ── Router ────────────────────────────────────────────────────────────────
-  const [page, setPage] = useState(user ? "dashboard" : "landing");
   const [sidebarTab, setSidebarTab] = useState("dashboard");
-
-  // ── Shared overlays ───────────────────────────────────────────────────────
   const { toast, showToast } = useToast();
   const [qrUrl, setQrUrl] = useState(null);
-
-  // ── Guest generated link ──────────────────────────────────────────────────
   const [generatedUrl, setGeneratedUrl] = useState("");
 
   const handleGenerate = (shortUrl) => {
     setGeneratedUrl(shortUrl);
-    setPage("generated");
+    navigate("/generated");
   };
 
   const handleCopy = (txt) => {
@@ -63,7 +58,7 @@ function AppInner() {
   const goHome = async () => {
     await supabase.auth.signOut();
     setSidebarTab("dashboard");
-    setPage("landing");
+    navigate("/");
   };
 
   return (
@@ -79,71 +74,67 @@ function AppInner() {
       <Toast message={toast.message} visible={toast.visible} />
       {qrUrl && <QRModal url={qrUrl} onClose={() => setQrUrl(null)} />}
 
-      {page === "landing" && (
-        <LandingPage onNavigate={setPage} onGenerate={handleGenerate} />
-      )}
-
-      {page === "generated" && (
-        <GeneratedPage
-          shortUrl={generatedUrl}
-          onBack={() => setPage("landing")}
-          onSignup={() => setPage("signup")}
-          onCopy={handleCopy}
-          onShowQR={setQrUrl}
-        />
-      )}
-
-      {page === "login" && (
-        <LoginPage
-          onLogin={() => setPage("dashboard")}
-          onSignup={() => setPage("signup")}
-          onClose={goHome}
-        />
-      )}
-
-      {page === "signup" && (
-        <SignupPage
-          onSignup={() => setPage("dashboard")}
-          onLogin={() => setPage("login")}
-          onClose={goHome}
-        />
-      )}
-
-      {page === "dashboard" && (
-        <DashboardShell
-          sidebarTab={sidebarTab}
-          setSidebarTab={setSidebarTab}
-          onLogout={goHome}
-          onCopy={handleCopy}
-          onShowQR={setQrUrl}
-          onShowToast={showToast}
-          pageTitles={PAGE_TITLES}
-        />
-      )}
+      <Routes>
+        <Route path="/" element={<LandingPage onGenerate={handleGenerate} />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        
+        <Route path="/generated" element={
+          <GeneratedPage
+            shortUrl={generatedUrl}
+            onBack={() => navigate("/")}
+            onSignup={() => navigate("/signup")}
+            onCopy={handleCopy}
+            onShowQR={setQrUrl}
+          />
+        } />
+        
+        <Route path="/login" element={
+          user ? <Navigate to="/dashboard" /> : 
+          <LoginPage
+            onLogin={() => navigate("/dashboard")}
+            onSignup={() => navigate("/signup")}
+            onClose={() => navigate("/")}
+          />
+        } />
+        
+        <Route path="/signup" element={
+          user ? <Navigate to="/dashboard" /> : 
+          <SignupPage
+            onSignup={() => navigate("/dashboard")}
+            onLogin={() => navigate("/login")}
+            onClose={() => navigate("/")}
+          />
+        } />
+        
+        <Route path="/dashboard" element={
+          !user ? <Navigate to="/login" /> : 
+          <DashboardShell
+            sidebarTab={sidebarTab}
+            setSidebarTab={setSidebarTab}
+            onLogout={goHome}
+            onCopy={handleCopy}
+            onShowQR={setQrUrl}
+            onShowToast={showToast}
+            pageTitles={PAGE_TITLES}
+          />
+        } />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </div>
   );
 }
 
-// ── Dashboard shell ───────────────────────────────────────────────────────────
-function DashboardShell({
-  sidebarTab,
-  setSidebarTab,
-  onLogout,
-  onCopy,
-  onShowQR,
-  onShowToast,
-  pageTitles,
-}) {
+function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR, onShowToast, pageTitles }) {
   const { bg, text, sf } = useTheme();
   const { title, subtitle } = pageTitles[sidebarTab];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: bg, transition: "background 0.3s" }}>
-      <Sidebar
-        activePage={sidebarTab}
-        onNavigate={setSidebarTab}
-        onLogout={onLogout}
-      />
+      <Sidebar activePage={sidebarTab} onNavigate={setSidebarTab} onLogout={onLogout} />
       <main
         style={{
           marginLeft: 240,
@@ -157,13 +148,8 @@ function DashboardShell({
         }}
       >
         <PageHeader title={title} subtitle={subtitle} />
-
-        {sidebarTab === "dashboard" && (
-          <OverviewTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />
-        )}
-        {sidebarTab === "links" && (
-          <LinksTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />
-        )}
+        {sidebarTab === "dashboard" && <OverviewTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />}
+        {sidebarTab === "links" && <LinksTab onCopy={onCopy} onShowQR={onShowQR} onShowToast={onShowToast} />}
         {sidebarTab === "analytics" && <AnalyticsTab />}
         {sidebarTab === "settings" && <SettingsTab />}
       </main>
@@ -171,11 +157,12 @@ function DashboardShell({
   );
 }
 
-// ── Root ──────────────────────────────────────────────────────────────────────
 export default function App() {
   return (
     <ThemeProvider>
-      <AppInner />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
