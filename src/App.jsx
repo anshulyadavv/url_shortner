@@ -191,8 +191,8 @@ function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR,
         }}
       >
         <div className="mobile-dashboard-header" style={{ display: "none", alignItems: "center", marginBottom: 24, gap: 16 }}>
-          <button onClick={() => setIsSidebarOpen(true)} style={{ ...btnSecondary(), padding: 8, borderRadius: 8 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <button onClick={() => setIsSidebarOpen(true)} style={{ ...btnSecondary(), padding: 8, borderRadius: 8, color: dark ? "#fff" : "#000" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
           <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: sf }}>blink.ly</h2>
         </div>

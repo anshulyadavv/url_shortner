@@ -85,11 +85,12 @@ export function Navbar() {
           className="mobile-nav-toggle"
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           style={{
-            background: "none", border: "none", color: text, padding: 8, cursor: "pointer",
+            position: "relative", zIndex: 50,
+            background: "none", border: "none", color: dark ? "#fff" : "#000", padding: 8, cursor: "pointer",
             display: "none", alignItems: "center", justifyContent: "center"
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="12" x2="21" y2="12" style={{ transition: "all 0.3s", opacity: isMobileOpen ? 0 : 1 }}></line>
             <line x1="3" y1="6" x2="21" y2="6" style={{ transition: "all 0.3s", transformOrigin: "center", transform: isMobileOpen ? "translateY(6px) rotate(45deg)" : "none" }}></line>
             <line x1="3" y1="18" x2="21" y2="18" style={{ transition: "all 0.3s", transformOrigin: "center", transform: isMobileOpen ? "translateY(-6px) rotate(-45deg)" : "none" }}></line>
@@ -159,6 +160,22 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Menu Backdrop */}
+      {isMobileOpen && (
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: dark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.4)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            zIndex: 45,
+            animation: "menuPop 0.2s ease forwards",
+          }}
+        />
+      )}
+
       {/* Mobile Menu Dropdown */}
       {isMobileOpen && (
         <div
@@ -167,7 +184,7 @@ export function Navbar() {
             top: "calc(100% + 8px)",
             right: 24,
             width: 240,
-            background: dark ? "rgba(28,28,30,0.85)" : "rgba(255,255,255,0.85)",
+            background: dark ? "rgba(28,28,30,0.98)" : "rgba(255,255,255,0.98)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             border: `1px solid ${cardBorder}`,
