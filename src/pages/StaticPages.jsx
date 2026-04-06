@@ -1,5 +1,6 @@
 import { useTheme } from "../context/ThemeContext";
 import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
 import { Icon } from "../components/UI";
 import { Icons } from "../data/icons";
 
@@ -65,6 +66,7 @@ function PageLayout({ children, title, subtitle }) {
           {children}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

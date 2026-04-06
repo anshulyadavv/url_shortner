@@ -2,7 +2,8 @@ import { useAuth } from "./context/AuthContext";
 import { useState } from "react";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { useToast } from "./hooks/useToast";
-import { Toast, QRModal } from "./components/UI";
+import { Toast, QRModal, Icon } from "./components/UI";
+import { Icons } from "./data/icons";
 import { Sidebar, PageHeader } from "./components/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
 import GeneratedPage from "./pages/GeneratedPage";
@@ -33,8 +34,34 @@ function AppRoutes() {
   const fullName = user?.user_metadata?.name ?? "";
   const name = fullName.split(" ")[0] || "there";
 
+  const currHour = new Date().getHours();
+  const isDay = currHour >= 6 && currHour < 18;
+  const Sticker = () => (
+    <span style={{ display: "inline-block", marginLeft: 8, animation: isDay ? "spin 12s linear infinite" : "float 3s ease-in-out infinite" }}>
+      <img 
+        src={isDay 
+          ? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sun/3D/sun_3d.png" 
+          : "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crescent%20moon/3D/crescent_moon_3d.png"
+        } 
+        alt={isDay ? "Sun" : "Moon"}
+        style={{ width: 32, height: 32, objectFit: "contain", display: "block", filter: "drop-shadow(0px 8px 12px rgba(0,0,0,0.15))" }}
+      />
+      <style>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+      `}</style>
+    </span>
+  );
+
   const PAGE_TITLES = {
-    dashboard: { title: "Dashboard", subtitle: `${getGreeting()}, ${name} 👋` },
+    dashboard: { 
+      title: "Dashboard", 
+      subtitle: (
+        <span style={{ display: "flex", alignItems: "center" }}>
+          {getGreeting()}, {name} <Sticker />
+        </span>
+      )
+    },
     links: { title: "My Links", subtitle: "Manage and track your shortened links" },
     analytics: { title: "Analytics", subtitle: "Detailed performance insights" },
     settings: { title: "Settings", subtitle: "Account preferences" },

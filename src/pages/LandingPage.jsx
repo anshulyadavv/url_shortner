@@ -4,6 +4,7 @@ import { Icon } from "../components/UI";
 import { Icons } from "../data/icons";
 import { supabase } from "../lib/supabase";
 import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 function AnimatedGrid({ dark }) {
   return (
@@ -344,6 +345,7 @@ onGenerate(`${window.location.origin}/${slug}`);
           </div>
         ))}
       </div>
+      <Footer />
     </div>
   );
 }
