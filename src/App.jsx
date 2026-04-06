@@ -157,7 +157,7 @@ function AppRoutes() {
 }
 
 function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR, onShowToast, pageTitles }) {
-  const { bg, text, sf, btnSecondary } = useTheme();
+  const { bg, text, sf, btnSecondary, dark } = useTheme();
   const { title, subtitle } = pageTitles[sidebarTab];
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -190,8 +190,8 @@ function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR,
           transition: "background 0.3s, margin-left 0.3s, color 0.3s",
         }}
       >
-        <div className="mobile-dashboard-header" style={{ display: "none", alignItems: "center", marginBottom: 24, gap: 16 }}>
-          <button onClick={() => setIsSidebarOpen(true)} style={{ ...btnSecondary(), padding: 8, borderRadius: 8, color: dark ? "#fff" : "#000" }}>
+        <div className="mobile-dashboard-header" style={{ alignItems: "center", marginBottom: 24, gap: 16 }}>
+          <button onClick={() => setIsSidebarOpen(true)} style={{ ...btnSecondary(), padding: 8, borderRadius: 8, color: dark ? "#fff" : "#000", border: "none", cursor: "pointer" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
           <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: sf }}>blink.ly</h2>

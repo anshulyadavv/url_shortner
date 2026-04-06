@@ -70,3 +70,32 @@ body, html {
     flex-direction: column !important;
   }
 }
+
+/* Responsive Grid Utilities */
+.stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 16px;
+}
+
+.analytics-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid, .analytics-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Make horizontal tables scrollable on mobile */
+  .links-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .links-table {
+    min-width: 700px;
+  }
+}

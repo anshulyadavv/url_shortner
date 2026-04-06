@@ -90,7 +90,7 @@ export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div className="stats-grid">
         {[
           { label: "Total Clicks",  value: stats.totalClicks,  note: "All time",  color: blue      },
           { label: "Active Links",  value: stats.activeLinks,  note: "Live now",  color: "#30D158" },
@@ -239,8 +239,9 @@ export function LinksTab({ onCopy, onShowQR, onShowToast }) {
         </div>
       </div>
 
-      <div style={{ ...cardStyle(), overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 2fr 80px 130px 100px 110px", padding: "12px 20px", borderBottom: `1px solid ${cardBorder}`, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)" }}>
+      <div style={{ ...cardStyle(), overflow: "hidden" }} className="links-table-container">
+        <div className="links-table">
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 2fr 80px 130px 100px 110px", padding: "12px 20px", borderBottom: `1px solid ${cardBorder}`, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)" }}>
           {["Short URL", "Original URL", "Clicks", "Expiry", "Created", "Actions"].map((h) => (
             <span key={h} style={{ fontSize: 12, fontWeight: 600, color: sub, letterSpacing: 0.2, fontFamily: sf }}>{h}</span>
           ))}
@@ -275,6 +276,7 @@ export function LinksTab({ onCopy, onShowQR, onShowToast }) {
             </div>
           </div>
         ))}
+        </div>
       </div>
       <span style={{ fontSize: 13, color: sub, fontFamily: sf }}>Showing {filtered.length} of {links.length} links</span>
     </div>
@@ -351,7 +353,7 @@ export function AnalyticsTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div className="stats-grid">
         {[
           { label: "Total Clicks",  value: stats.total,      note: "All time"         },
           { label: "This Week",     value: stats.thisWeek,    note: "Last 7 days"      },
@@ -385,7 +387,7 @@ export function AnalyticsTab() {
         }
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="analytics-grid">
         <div style={{ ...cardStyle(), padding: 28 }}>
           <h2 style={{ fontSize: 17, fontWeight: 600, letterSpacing: -0.3, marginBottom: 20, fontFamily: sf, color: text }}>Device Types</h2>
           {donutSegments.length === 0 ? (
