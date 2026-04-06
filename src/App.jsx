@@ -8,7 +8,7 @@ import { Sidebar, PageHeader } from "./components/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
 import GeneratedPage from "./pages/GeneratedPage";
 import { LoginPage, SignupPage } from "./pages/AuthPages";
-import { FeaturesPage, DocsPage, PricingPage } from "./pages/StaticPages";
+import { FeaturesPage, DocsPage, PricingPage, TermsPage, PrivacyPage } from "./pages/StaticPages";
 import { supabase } from "./lib/supabase";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import {
@@ -106,6 +106,8 @@ function AppRoutes() {
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         
         <Route path="/generated" element={
           <GeneratedPage

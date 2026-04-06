@@ -73,7 +73,7 @@ export function Footer() {
                 transition: "background 0.2s",
               }}
             >
-              <Icon path={Icons.link} size={12} />
+              <Icon path={Icons.github} size={15} />
               Star on GitHub
             </a>
           </div>

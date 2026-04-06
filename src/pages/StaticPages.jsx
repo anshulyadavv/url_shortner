@@ -152,3 +152,35 @@ export function PricingPage() {
     </PageLayout>
   );
 }
+
+export function TermsPage() {
+  const { dark, cardStyle, sub } = useTheme();
+  return (
+    <PageLayout title="Terms & Conditions" subtitle="Please read these terms carefully before using short.ly.">
+      <div style={{ ...cardStyle(), padding: 32, backdropFilter: "blur(20px)", background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)" }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Acceptance of Terms</h2>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>By using short.ly, you agree to comply with and be bound by these terms. If you do not agree, please do not use our services.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Service Usage</h2>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>Our services are provided "as is". You must not use our short links for sending spam, phishing, distributing malware, or any other illegal activities. We reserve the right to remove any link at our discretion without notice.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Limitation of Liability</h2>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>We are not responsible for any issues or damages caused by links generated through our platform. Links redirect to external platforms beyond our control.</p>
+      </div>
+    </PageLayout>
+  );
+}
+
+export function PrivacyPage() {
+  const { dark, cardStyle, sub } = useTheme();
+  return (
+    <PageLayout title="Privacy Policy" subtitle="How we handle and respect your data.">
+      <div style={{ ...cardStyle(), padding: 32, backdropFilter: "blur(20px)", background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)" }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Data Collection</h2>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>We collect minimal data to provide you with the best possible service. If you create an account, we store your email and associated name securely.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Link Analytics</h2>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>We track clicks on short links, including IP address generalizations (for geographic location), referring pages, and device/browser types. This data is exclusively made available in aggregate to the link creator.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Your Rights</h2>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>You have the right to request deletion of your account and any associated links at any time. We will not share or sell your data to third-party advertising companies.</p>
+      </div>
+    </PageLayout>
+  );
+}

@@ -4,7 +4,7 @@ import { Icons } from "../data/icons";
 import { Link, useNavigate } from "react-router-dom";
 
 export function Navbar() {
-  const { dark, toggleDark, cardBorder, sub, blue, sf, btnPrimary, btnSecondary } = useTheme();
+  const { dark, toggleDark, cardBorder, sub, text, blue, sf, btnPrimary, btnSecondary } = useTheme();
   const navigate = useNavigate();
 
   return (
@@ -19,6 +19,15 @@ export function Navbar() {
         fontFamily: sf,
       }}
     >
+      <style>{`
+        .nav-link {
+          transition: color 0.15s ease;
+          color: ${sub};
+        }
+        .nav-link:hover {
+          color: ${text};
+        }
+      `}</style>
       <div
         style={{
           maxWidth: 1100,
@@ -56,10 +65,10 @@ export function Navbar() {
             <Link
               key={item}
               to={`/${item.toLowerCase()}`}
+              className="nav-link"
               style={{
                 background: "none",
                 border: "none",
-                color: sub,
                 fontSize: 14,
                 cursor: "pointer",
                 padding: "6px 12px",
