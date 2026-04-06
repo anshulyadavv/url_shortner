@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { Icons } from "../data/icons";
+import { QRCodeCanvas } from "qrcode.react";
 
 // ─── Generic SVG icon wrapper ─────────────────────────────────────────────────
 export function Icon({ path, size = 16, color, style = {} }) {
@@ -80,7 +82,22 @@ export function Toast({ message, visible }) {
 // ─── QR Code Modal ────────────────────────────────────────────────────────────
 export function QRModal({ url, onClose }) {
   const { dark, blue, sf } = useTheme();
+  const qrRef = useRef();
+
   if (!url) return null;
+
+  const handleDownload = () => {
+    if (!qrRef.current) return;
+    const canvas = qrRef.current.querySelector("canvas");
+    if (!canvas) return;
+    const pngUrl = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    const downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = "shortly-qr.png";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
 
   return (
     <div
@@ -148,49 +165,29 @@ export function QRModal({ url, onClose }) {
           </button>
         </div>
 
-        {/* QR placeholder graphic */}
+        {/* QR Code */}
         <div
+          ref={qrRef}
           style={{
             width: 180,
             height: 180,
-            background: dark ? "#2C2C2E" : "#F5F5F7",
+            background: "white",
             borderRadius: 12,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            padding: 16,
           }}
         >
-          <svg width="150" height="150" viewBox="0 0 150 150">
-            {[0, 1, 2, 3, 4, 5, 6].map((r) =>
-              [0, 1, 2, 3, 4, 5, 6].map((c) => {
-                const isCorner =
-                  (r < 3 && c < 3) || (r < 3 && c > 3) || (r > 3 && c < 3);
-                const isInner =
-                  (r === 1 && c === 1) || (r === 1 && c === 5) || (r === 5 && c === 1);
-                // Use a deterministic fill based on position so it doesn't re-randomise on re-render
-                const isFill = (r * 7 + c * 3) % 2 === 0;
-                return isCorner || isInner || isFill ? (
-                  <rect
-                    key={`${r}-${c}`}
-                    x={10 + c * 20}
-                    y={10 + r * 20}
-                    width={16}
-                    height={16}
-                    rx={2}
-                    fill={dark ? "#fff" : "#1d1d1f"}
-                    opacity={isCorner || isInner ? 1 : 0.6}
-                  />
-                ) : null;
-              })
-            )}
-          </svg>
+          <QRCodeCanvas value={url} size={148} level="H" />
         </div>
 
-        <p style={{ fontSize: 12, color: dark ? "#888" : "#666", fontFamily: sf, textAlign: "center" }}>
+        <p style={{ fontSize: 12, color: dark ? "#888" : "#666", fontFamily: sf, textAlign: "center", wordBreak: "break-all", padding: "0 10px" }}>
           {url}
         </p>
 
         <button
+          onClick={handleDownload}
           style={{
             width: "100%",
             padding: "11px 0",

@@ -37,7 +37,7 @@ function AppRoutes() {
   const currHour = new Date().getHours();
   const isDay = currHour >= 6 && currHour < 18;
   const Sticker = () => (
-    <span style={{ display: "inline-block", marginLeft: 8, animation: isDay ? "spin 12s linear infinite" : "float 3s ease-in-out infinite" }}>
+    <span style={{ display: "inline-block", marginLeft: 8 }}>
       <img 
         src={isDay 
           ? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sun/3D/sun_3d.png" 
@@ -46,10 +46,6 @@ function AppRoutes() {
         alt={isDay ? "Sun" : "Moon"}
         style={{ width: 32, height: 32, objectFit: "contain", display: "block", filter: "drop-shadow(0px 8px 12px rgba(0,0,0,0.15))" }}
       />
-      <style>{`
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-      `}</style>
     </span>
   );
 
