@@ -64,3 +64,9 @@ body, html {
     transform: translateX(0) !important;
   }
 }
+
+@media (max-width: 600px) {
+  .url-input-card {
+    flex-direction: column !important;
+  }
+}

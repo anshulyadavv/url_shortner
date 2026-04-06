@@ -95,6 +95,7 @@ onGenerate(`${window.location.origin}/${slug}`);
         fontFamily: sf,
         color: text,
         transition: "all 0.3s",
+        overflowX: "hidden",
       }}
     >
       <AnimatedGrid dark={dark} />
@@ -194,8 +195,8 @@ onGenerate(`${window.location.origin}/${slug}`);
           analytics and expiration control.
         </p>
 
-        {/* URL input card */}
         <div
+          className="url-input-card"
           style={{
             ...cardStyle(),
             padding: 8,
@@ -208,7 +209,7 @@ onGenerate(`${window.location.origin}/${slug}`);
             background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)",
           }}
         >
-          <div style={{ flex: 1, position: "relative" }}>
+          <div style={{ flex: 1, position: "relative", minWidth: 200 }}>
             <div
               style={{
                 position: "absolute",

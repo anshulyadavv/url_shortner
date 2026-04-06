@@ -90,18 +90,9 @@ export function Navbar() {
           }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {isMobileOpen ? (
-              <>
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </>
-            ) : (
-              <>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </>
-            )}
+            <line x1="3" y1="12" x2="21" y2="12" style={{ transition: "all 0.3s", opacity: isMobileOpen ? 0 : 1 }}></line>
+            <line x1="3" y1="6" x2="21" y2="6" style={{ transition: "all 0.3s", transformOrigin: "center", transform: isMobileOpen ? "translateY(6px) rotate(45deg)" : "none" }}></line>
+            <line x1="3" y1="18" x2="21" y2="18" style={{ transition: "all 0.3s", transformOrigin: "center", transform: isMobileOpen ? "translateY(-6px) rotate(-45deg)" : "none" }}></line>
           </svg>
         </button>
 
