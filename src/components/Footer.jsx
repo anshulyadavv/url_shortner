@@ -39,7 +39,7 @@ export function Footer() {
           {/* Brand & Copyright */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <span style={{ fontSize: 13, color: sub, fontWeight: 500 }}>
-              © {new Date().getFullYear()} short.ly™
+              © {new Date().getFullYear()} blink.ly™
             </span>
             <span style={{ fontSize: 13, color: sub }}>
               Developed with ❤️ by <a href="https://github.com/anshulyadavv" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>Anshul</a>

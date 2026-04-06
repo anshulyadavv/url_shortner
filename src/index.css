@@ -28,7 +28,11 @@ input:focus {
   border-color: #007AFF !important;
 }
 
-/* Smooth scrollbar on macOS */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+/* Hide scrollbar globally */
+::-webkit-scrollbar { 
+  display: none; 
+}
+body, html {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

@@ -55,7 +55,7 @@ export function Navbar() {
             <Icon path={Icons.link} size={14} color="white" />
           </div>
           <span style={{ fontWeight: 600, fontSize: 16, letterSpacing: -0.3 }}>
-            short.ly
+            blink.ly
           </span>
         </Link>
 

@@ -3,6 +3,7 @@ import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { Icon } from "../components/UI";
 import { Icons } from "../data/icons";
+import { useNavigate } from "react-router-dom";
 
 function AnimatedGrid({ dark }) {
   return (
@@ -37,12 +38,22 @@ function AnimatedGrid({ dark }) {
 }
 
 function PageLayout({ children, title, subtitle }) {
-  const { dark, bg, text, sf, sub } = useTheme();
+  const { dark, bg, text, sf, sub, btnSecondary } = useTheme();
+  const navigate = useNavigate();
+
   return (
-    <div style={{ background: bg, minHeight: "100vh", fontFamily: sf, color: text, transition: "all 0.3s" }}>
+    <div style={{ background: bg, minHeight: "100vh", fontFamily: sf, color: text, transition: "all 0.3s", display: "flex", flexDirection: "column" }}>
       <AnimatedGrid dark={dark} />
       <Navbar />
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "80px 24px", position: "relative", zIndex: 1, textAlign: "center" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto", width: "100%", padding: "32px 24px 0", position: "relative", zIndex: 1, textAlign: "left" }}>
+        <button
+          onClick={() => navigate("/")}
+          style={{ ...btnSecondary(), padding: "8px 14px", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 8, cursor: "pointer" }}
+        >
+          ← Back
+        </button>
+      </div>
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 80px", position: "relative", zIndex: 1, textAlign: "center", flex: 1 }}>
         <h1
           key={dark}
           style={{
@@ -100,11 +111,11 @@ export function FeaturesPage() {
 export function DocsPage() {
   const { dark, cardStyle, sub } = useTheme();
   return (
-    <PageLayout title="Documentation" subtitle="Learn how to get the most out of short.ly">
+    <PageLayout title="Documentation" subtitle="Learn how to get the most out of blink.ly">
       <div style={{ ...cardStyle(), padding: 32, backdropFilter: "blur(20px)", background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)" }}>
         <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Getting Started</h2>
         <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>
-          short.ly is designed to be intuitive. Guests can instantly create temporary links that expire in 24 hours directly from the home page.
+          blink.ly is designed to be intuitive. Guests can instantly create temporary links that expire in 24 hours directly from the home page.
         </p>
         <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16, marginTop: 32 }}>Managing Links</h2>
         <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>
@@ -156,10 +167,10 @@ export function PricingPage() {
 export function TermsPage() {
   const { dark, cardStyle, sub } = useTheme();
   return (
-    <PageLayout title="Terms & Conditions" subtitle="Please read these terms carefully before using short.ly.">
+    <PageLayout title="Terms & Conditions" subtitle="Please read these terms carefully before using blink.ly.">
       <div style={{ ...cardStyle(), padding: 32, backdropFilter: "blur(20px)", background: dark ? "rgba(28,28,30,0.6)" : "rgba(255,255,255,0.6)" }}>
         <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Acceptance of Terms</h2>
-        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>By using short.ly, you agree to comply with and be bound by these terms. If you do not agree, please do not use our services.</p>
+        <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>By using blink.ly, you agree to comply with and be bound by these terms. If you do not agree, please do not use our services.</p>
         <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Service Usage</h2>
         <p style={{ color: sub, marginBottom: 24, lineHeight: 1.6 }}>Our services are provided "as is". You must not use our short links for sending spam, phishing, distributing malware, or any other illegal activities. We reserve the right to remove any link at our discretion without notice.</p>
         <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Limitation of Liability</h2>

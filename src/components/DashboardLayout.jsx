@@ -72,7 +72,7 @@ export function Sidebar({ activePage, onNavigate, onLogout }) {
             fontFamily: sf,
           }}
         >
-          short.ly
+          blink.ly
         </span>
       </div>
 

@@ -1,4 +1,4 @@
-# short.ly
+# blink.ly
 
 A fast, modern URL shortener built with React and Supabase. Create short links, track clicks in real time, and analyze your audience — all from a clean, responsive dashboard.
 
