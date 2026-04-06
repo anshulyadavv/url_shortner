@@ -15,7 +15,7 @@ const NAV_ITEMS = [
 const LOGOUT_ICON =
   "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9";
 
-export function Sidebar({ activePage, onNavigate, onLogout }) {
+export function Sidebar({ activePage, onNavigate, onLogout, isOpen }) {
   const { dark, toggleDark, bg, cardBorder, sub, blue, sf, text } = useTheme();
 
   const { user } = useAuth();
@@ -24,6 +24,7 @@ export function Sidebar({ activePage, onNavigate, onLogout }) {
 
   return (
     <aside
+      className={`desktop-sidebar ${isOpen ? "open" : ""}`}
       style={{
         width: 240,
         position: "fixed",
@@ -37,7 +38,7 @@ export function Sidebar({ activePage, onNavigate, onLogout }) {
         display: "flex",
         flexDirection: "column",
         padding: "20px 12px",
-        transition: "background 0.3s",
+        transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s",
       }}
     >
       {/* Logo */}

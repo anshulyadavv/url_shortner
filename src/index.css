@@ -36,3 +36,31 @@ body, html {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* Dashboard Responsive Utilities */
+@media (max-width: 768px) {
+  .desktop-sidebar {
+    transform: translateX(-100%);
+  }
+  .desktop-sidebar.open {
+    transform: translateX(0);
+  }
+  .dashboard-main {
+    margin-left: 0 !important;
+    padding: 24px 16px !important;
+  }
+  .mobile-dashboard-header {
+    display: flex !important;
+  }
+}
+@media (min-width: 769px) {
+  .mobile-dashboard-header {
+    display: none !important;
+  }
+  .mobile-sidebar-overlay {
+    display: none !important;
+  }
+  .desktop-sidebar {
+    transform: translateX(0) !important;
+  }
+}
