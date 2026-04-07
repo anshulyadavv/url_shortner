@@ -149,7 +149,7 @@ export function OverviewTab({ onShowQR, onCopy, onShowToast }) {
                   <Icon path={Icons.link} size={14} color={link.expired ? "#FF453A" : blue} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: blue, marginBottom: 2, fontFamily: sf }}>{window.location.origin}/{link.slug}</p>
+                  <p className="recent-link-title" style={{ fontSize: 14, fontWeight: 600, color: blue, marginBottom: 2, fontFamily: sf }}>{window.location.origin}/{link.slug}</p>
                   <p style={{ fontSize: 12, color: sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: sf }}>{link.original_url}</p>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -393,7 +393,7 @@ export function AnalyticsTab() {
           {donutSegments.length === 0 ? (
             <p style={{ color: sub, fontFamily: sf, fontSize: 14 }}>No data yet.</p>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+            <div className="donut-mobile-col" style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <DonutChart segments={donutSegments} />
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {deviceData.map((d, i) => (
@@ -481,11 +481,11 @@ export function SettingsTab() {
       <div style={{ ...cardStyle(), padding: 24 }}>
         <h2 style={{ fontSize: 12, fontWeight: 600, marginBottom: 16, color: sub, textTransform: "uppercase", letterSpacing: 0.6, fontFamily: sf }}>Account</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className="settings-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Display name</span>
             <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className="settings-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, fontFamily: sf, color: text }}>Email address</span>
             <input value={user?.email ?? ""} disabled style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14, opacity: 0.5, cursor: "not-allowed" }} />
           </div>
@@ -500,7 +500,7 @@ export function SettingsTab() {
             { label: "New password",     value: newPass,     set: setNewPass     },
             { label: "Confirm password", value: confirmPass, set: setConfirmPass },
           ].map(({ label, value, set }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div key={label} className="settings-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontFamily: sf, color: text }}>{label}</span>
               <input type="password" value={value} onChange={(e) => set(e.target.value)} style={{ ...inputStyle(), width: 220, padding: "8px 12px", fontSize: 14 }} />
             </div>

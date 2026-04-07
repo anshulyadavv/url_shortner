@@ -1,5 +1,5 @@
 import { useAuth } from "./context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { useToast } from "./hooks/useToast";
 import { Toast, QRModal, Icon } from "./components/UI";
@@ -7,7 +7,7 @@ import { Icons } from "./data/icons";
 import { Sidebar, PageHeader } from "./components/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
 import GeneratedPage from "./pages/GeneratedPage";
-import { LoginPage, SignupPage } from "./pages/AuthPages";
+import { LoginPage, SignupPage, UpdatePasswordPage } from "./pages/AuthPages";
 import { FeaturesPage, DocsPage, PricingPage, TermsPage, PrivacyPage } from "./pages/StaticPages";
 import { supabase } from "./lib/supabase";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
@@ -30,6 +30,17 @@ function AppRoutes() {
   const { bg, text, sf } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        navigate("/update-password");
+      }
+    });
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const fullName = user?.user_metadata?.name ?? "";
   const name = fullName.split(" ")[0] || "there";
@@ -133,6 +144,13 @@ function AppRoutes() {
             onSignup={() => navigate("/dashboard")}
             onLogin={() => navigate("/login")}
             onClose={() => navigate("/")}
+          />
+        } />
+        
+        <Route path="/update-password" element={
+          <UpdatePasswordPage
+            onClose={() => navigate("/")}
+            onLogin={() => navigate("/login")}
           />
         } />
         

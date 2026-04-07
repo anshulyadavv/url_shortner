@@ -199,16 +199,38 @@ function ErrorMsg({ msg }) {
   );
 }
 
+// ── Success message ───────────────────────────────────────────────────────────
+function SuccessMsg({ msg }) {
+  if (!msg) return null;
+  return (
+    <div
+      style={{
+        background: "rgba(48,209,88,0.1)",
+        border: "1px solid rgba(48,209,88,0.3)",
+        borderRadius: 8,
+        padding: "10px 14px",
+        marginBottom: 12,
+        color: "#30D158",
+        fontSize: 13,
+      }}
+    >
+      {msg}
+    </div>
+  );
+}
+
 // ── LOGIN PAGE ────────────────────────────────────────────────────────────────
 export function LoginPage({ onLogin, onSignup, onClose }) {
   const { inputStyle, btnPrimary, btnSecondary, blue, sub, sf } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setError("");
+    setSuccessMsg("");
     if (!email || !password) return setError("Please fill in all fields.");
     setLoading(true);
     const { error: err } = await supabase.auth.signInWithPassword({
@@ -220,6 +242,19 @@ export function LoginPage({ onLogin, onSignup, onClose }) {
     onLogin();
   };
 
+  const handleForgotPassword = async () => {
+    setError("");
+    setSuccessMsg("");
+    if (!email) return setError("Please enter your email address above to reset your password.");
+    setLoading(true);
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/update-password",
+    });
+    setLoading(false);
+    if (err) return setError(err.message);
+    setSuccessMsg("Password reset link sent to your email.");
+  };
+
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({ provider: "google" });
   };
@@ -229,6 +264,7 @@ export function LoginPage({ onLogin, onSignup, onClose }) {
       <AuthLogo title="Welcome back" subtitle="Sign in to your account" />
 
       <ErrorMsg msg={error} />
+      <SuccessMsg msg={successMsg} />
 
       <div
         style={{
@@ -257,6 +293,8 @@ export function LoginPage({ onLogin, onSignup, onClose }) {
 
       <div style={{ textAlign: "right", marginBottom: 20 }}>
         <button
+          onClick={handleForgotPassword}
+          disabled={loading}
           style={{
             background: "none",
             border: "none",
@@ -502,3 +540,76 @@ export function SignupPage({ onSignup, onLogin, onClose }) {
     </AuthCard>
   );
 }
+
+// ── UPDATE PASSWORD PAGE ──────────────────────────────────────────────────────
+export function UpdatePasswordPage({ onClose, onLogin }) {
+  const { inputStyle, btnPrimary, sf } = useTheme();
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    setError("");
+    setSuccessMsg("");
+    if (!password || !confirm) return setError("Please fill in all fields.");
+    if (password !== confirm) return setError("Passwords do not match.");
+    if (password.length < 6) return setError("Password must be at least 6 characters.");
+    
+    setLoading(true);
+    const { error: err } = await supabase.auth.updateUser({ password });
+    setLoading(false);
+    
+    if (err) return setError(err.message);
+    setSuccessMsg("Password updated successfully!");
+  };
+
+  if (successMsg) {
+    return (
+      <AuthCard onClose={onClose}>
+        <AuthLogo title="Password Updated" subtitle="You can now sign in safely." />
+        <SuccessMsg msg={successMsg} />
+        <button
+          onClick={onLogin}
+          style={{ ...btnPrimary, width: "100%", marginTop: 24, padding: "13px 0" }}
+        >
+          Go to Sign In
+        </button>
+      </AuthCard>
+    );
+  }
+
+  return (
+    <AuthCard onClose={onClose}>
+      <AuthLogo title="Reset Password" subtitle="Enter your new password below" />
+      <ErrorMsg msg={error} />
+      <SuccessMsg msg={successMsg} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+        <input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="New password"
+          type="password"
+          style={inputStyle()}
+        />
+        <input
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          placeholder="Confirm new password"
+          type="password"
+          style={inputStyle()}
+          onKeyDown={(e) => e.key === "Enter" && handleUpdate()}
+        />
+      </div>
+      <button
+        onClick={handleUpdate}
+        disabled={loading}
+        style={{ ...btnPrimary, width: "100%", marginBottom: 12, padding: "13px 0", opacity: loading ? 0.7 : 1 }}
+      >
+        {loading ? "Updating…" : "Update Password"}
+      </button>
+    </AuthCard>
+  );
+}
+

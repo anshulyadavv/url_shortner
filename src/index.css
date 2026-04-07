@@ -98,4 +98,31 @@ body, html {
   .links-table {
     min-width: 700px;
   }
+
+  .settings-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .settings-row span {
+    font-size: 13px !important;
+  }
+  .settings-row input {
+    width: 100% !important;
+  }
+  
+  .donut-mobile-col {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .donut-mobile-col > div {
+    width: 100% !important;
+  }
+  
+  .recent-link-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 160px;
+  }
 }
