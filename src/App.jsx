@@ -180,7 +180,7 @@ function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR,
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: bg, transition: "background 0.3s" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: bg, transition: "background 0.3s", overflowX: "hidden" }}>
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
@@ -200,6 +200,7 @@ function DashboardShell({ sidebarTab, setSidebarTab, onLogout, onCopy, onShowQR,
         style={{
           marginLeft: 240,
           flex: 1,
+          minWidth: 0,
           padding: 32,
           background: bg,
           color: text,

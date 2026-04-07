@@ -50,7 +50,7 @@ function PageLayout({ children, title, subtitle }) {
           onClick={() => navigate("/")}
           style={{ ...btnSecondary(), padding: "8px 14px", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 8, cursor: "pointer" }}
         >
-          ← Back
+          <Icon path={Icons.arrowLeft} size={14} /> Back
         </button>
       </div>
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 24px 80px", position: "relative", zIndex: 1, textAlign: "center", flex: 1 }}>

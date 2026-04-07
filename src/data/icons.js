@@ -25,4 +25,5 @@ export const Icons = {
   monitor:
     "M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM8 21h8M12 17v4",
   arrow: "M5 12h14M12 5l7 7-7 7",
+  arrowLeft: "M19 12H5M12 19l-7-7 7-7",
 };

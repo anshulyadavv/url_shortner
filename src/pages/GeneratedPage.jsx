@@ -95,7 +95,7 @@ export default function GeneratedPage({ shortUrl, originalUrl, onBack, onSignup,
         onClick={onBack}
         style={{ position: "absolute", top: 24, left: 24, ...btnSecondary(), padding: "8px 16px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}
       >
-        ← Back
+        <Icon path={Icons.arrowLeft} size={14} /> Back
       </button>
 
       <div style={{ ...cardStyle(), padding: 40, maxWidth: 520, width: "100%", textAlign: "center" }}>

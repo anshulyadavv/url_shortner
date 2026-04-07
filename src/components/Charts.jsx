@@ -57,7 +57,9 @@ export function Sparkline({ data, color = "#007AFF", height = 60 }) {
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * W;
+    const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+    if (clientX == null) return;
+    const mouseX = ((clientX - rect.left) / rect.width) * W;
     // snap directly without rounding to nearest point
     const exactIndex = (mouseX / W) * (data.length - 1);
     const clamped = Math.max(
@@ -78,9 +80,12 @@ export function Sparkline({ data, color = "#007AFF", height = 60 }) {
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
-        style={{ width: "100%", height, cursor: "crosshair" }}
+        style={{ width: "100%", height, cursor: "crosshair", touchAction: "pan-y" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setHover(null)}
+        onTouchMove={handleMouseMove}
+        onTouchStart={handleMouseMove}
+        onTouchEnd={() => setHover(null)}
       >
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
