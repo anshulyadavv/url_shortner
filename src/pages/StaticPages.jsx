@@ -132,6 +132,7 @@ export function DocsPage() {
 
 export function PricingPage() {
   const { dark, cardStyle, sub, btnPrimary } = useTheme();
+  const navigate = useNavigate();
   return (
     <PageLayout title="Simple Pricing" subtitle="A free-tier to get you started without limits being an obstacle.">
       <div style={{ display: "flex", justifyContent: "center" }}>
@@ -155,7 +156,7 @@ export function PricingPage() {
               </li>
             ))}
           </ul>
-          <button style={{ ...btnPrimary, width: "100%", padding: "14px 24px", borderRadius: 12, fontSize: 16 }}>
+          <button onClick={() => navigate("/signup")} style={{ ...btnPrimary, width: "100%", padding: "14px 24px", borderRadius: 12, fontSize: 16 }}>
             Start for free
           </button>
         </div>
