@@ -20,11 +20,10 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav
       style={{
         position: "relative",
         top: 0,
-        zIndex: 40,
+        zIndex: 50,
         borderBottom: `1px solid ${cardBorder}`,
         backdropFilter: "blur(20px)",
         background: dark ? "rgba(15,15,16,0.85)" : "rgba(245,245,247,0.85)",
@@ -169,7 +168,7 @@ export function Navbar() {
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="fixed inset-0 z-40 md:hidden bg-black/20 dark:bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-40 md:hidden bg-black/10 dark:bg-black/40 backdrop-blur-md"
         />
       )}
 

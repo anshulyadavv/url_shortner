@@ -14,7 +14,7 @@ export function MenuItem({ children, onClick, disabled = false, icon, isActive =
   return (
     <button
       className={`relative block w-full h-12 text-left group transition-all duration-200 rounded-lg px-3
-        ${disabled ? "text-gray-400 dark:text-gray-500 cursor-not-allowed" : "text-gray-600 dark:text-gray-300"}
+        ${disabled ? "text-gray-400 dark:text-gray-500 cursor-not-allowed" : "text-gray-800 dark:text-gray-200"}
         ${isActive ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" : "hover:bg-gray-100 dark:hover:bg-white/5"}
       `}
       role="menuitem"
