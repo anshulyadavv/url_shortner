@@ -3,6 +3,8 @@ import { useTheme } from "../context/ThemeContext";
 import { Icon } from "./UI";
 import { Icons } from "../data/icons";
 import { Link, useNavigate } from "react-router-dom";
+import { MenuContainer, MenuItem } from "@/components/ui/fluid-menu";
+import { LayoutGrid, FileText, CreditCard, LogIn, UserPlus, Sun, Moon, Menu as MenuIcon, X } from "lucide-react";
 
 export function Navbar() {
   const { dark, toggleDark, cardBorder, sub, text, blue, sf, btnPrimary, btnSecondary } = useTheme();
@@ -75,7 +77,7 @@ export function Navbar() {
           >
             <Icon path={Icons.link} size={14} color="white" />
           </div>
-          <span style={{ fontWeight: 600, fontSize: 16, letterSpacing: -0.3 }}>
+          <span style={{ fontWeight: 600, fontSize: 16, letterSpacing: -0.3, color: text }}>
             blink.ly
           </span>
         </Link>
@@ -90,11 +92,14 @@ export function Navbar() {
             display: "none", alignItems: "center", justifyContent: "center"
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12" style={{ transition: "all 0.3s", opacity: isMobileOpen ? 0 : 1 }}></line>
-            <line x1="3" y1="6" x2="21" y2="6" style={{ transition: "all 0.3s", transformOrigin: "center", transform: isMobileOpen ? "translateY(6px) rotate(45deg)" : "none" }}></line>
-            <line x1="3" y1="18" x2="21" y2="18" style={{ transition: "all 0.3s", transformOrigin: "center", transform: isMobileOpen ? "translateY(-6px) rotate(-45deg)" : "none" }}></line>
-          </svg>
+          <div className="relative w-6 h-6">
+            <div className={`absolute inset-0 transition-all duration-300 ${isMobileOpen ? "opacity-0 rotate-90 scale-0" : "opacity-100 rotate-0 scale-100"}`}>
+              <MenuIcon size={24} strokeWidth={2.5} />
+            </div>
+            <div className={`absolute inset-0 transition-all duration-300 ${isMobileOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-0"}`}>
+              <X size={24} strokeWidth={2.5} />
+            </div>
+          </div>
         </button>
 
         {/* Right nav - Desktop */}
@@ -164,78 +169,83 @@ export function Navbar() {
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: dark ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.4)",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
-            zIndex: 45,
-            animation: "menuPop 0.2s ease forwards",
-          }}
+          className="fixed inset-0 z-40 md:hidden bg-black/20 dark:bg-black/40 backdrop-blur-sm"
         />
       )}
 
       {/* Mobile Menu Dropdown */}
-      {isMobileOpen && (
+      <div
+        className={`fixed top-14 right-0 p-4 w-full max-w-[300px] md:hidden z-50 transition-all duration-300 pointer-events-none`}
+      >
         <div
+          className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-auto
+            ${isMobileOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-4 scale-95"}
+          `}
           style={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            right: 24,
-            width: 240,
+            transformOrigin: "top right",
             background: dark ? "rgba(28,28,30,0.98)" : "rgba(255,255,255,0.98)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             border: `1px solid ${cardBorder}`,
             borderRadius: 16,
-            padding: 16,
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
+            padding: 12,
             boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-            zIndex: 50,
-            animation: "menuPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-            transformOrigin: "top right",
           }}
         >
-          {["Features", "Docs", "Pricing"].map((item) => (
-            <Link
-              key={item}
-              to={`/${item.toLowerCase()}`}
-              className="nav-link"
-              onClick={() => setIsMobileOpen(false)}
-              style={{ padding: "8px 12px", borderRadius: 8, textDecoration: "none", fontSize: 15 }}
+          <MenuContainer isExpanded={isMobileOpen}>
+            <MenuItem 
+              icon={<LayoutGrid size={18} />} 
+              onClick={() => { setIsMobileOpen(false); navigate("/features"); }}
             >
-              {item}
-            </Link>
-          ))}
-          <div style={{ height: 1, background: cardBorder, margin: "4px 0" }} />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 12px" }}>
-            <span style={{ fontSize: 14, color: sub, fontFamily: sf }}>Theme</span>
-            <button
+              Features
+            </MenuItem>
+            <MenuItem 
+              icon={<FileText size={18} />} 
+              onClick={() => { setIsMobileOpen(false); navigate("/docs"); }}
+            >
+              Documentation
+            </MenuItem>
+            <MenuItem 
+              icon={<CreditCard size={18} />} 
+              onClick={() => { setIsMobileOpen(false); navigate("/pricing"); }}
+            >
+              Pricing
+            </MenuItem>
+            
+            <div className="h-px bg-gray-200 dark:bg-white/10 my-1 mx-2" />
+            
+            <MenuItem 
+              icon={dark ? <Sun size={18} /> : <Moon size={18} />} 
               onClick={toggleDark}
-              style={{ ...btnSecondary(), padding: 6, borderRadius: 8 }}
             >
-              <Icon path={dark ? Icons.sun : Icons.moon} size={15} />
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-            <button
-              onClick={() => { setIsMobileOpen(false); navigate("/login"); }}
-              style={{ ...btnSecondary(), flex: 1, padding: "8px 0", borderRadius: 10, fontSize: 14 }}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => { setIsMobileOpen(false); navigate("/signup"); }}
-              style={{ ...btnPrimary, flex: 1, padding: "8px 0", borderRadius: 10, fontSize: 14 }}
-            >
-              Sign Up
-            </button>
-          </div>
+              {dark ? "Light Mode" : "Dark Mode"}
+            </MenuItem>
+            
+            <div className="h-px bg-gray-200 dark:bg-white/10 my-1 mx-2" />
+            
+            <div className="flex flex-col gap-2 p-1">
+              <button
+                onClick={() => { setIsMobileOpen(false); navigate("/login"); }}
+                style={{ ...btnSecondary(), width: "100%", padding: "10px 0", borderRadius: 12, fontSize: 13, fontWeight: 500 }}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <LogIn size={16} /> Login
+                </span>
+              </button>
+              <button
+                onClick={() => { setIsMobileOpen(false); navigate("/signup"); }}
+                style={{ ...btnPrimary, width: "100%", padding: "10px 0", borderRadius: 12, fontSize: 13, fontWeight: 500 }}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <UserPlus size={16} /> Sign Up
+                </span>
+              </button>
+            </div>
+          </MenuContainer>
         </div>
-      )}
+      </div>
     </nav>
   );
 }
+
+
