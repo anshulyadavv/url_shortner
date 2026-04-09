@@ -20,6 +20,7 @@ export function Navbar() {
   }, []);
 
   return (
+    <nav
       style={{
         position: "relative",
         top: 0,
